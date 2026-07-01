@@ -1,0 +1,10 @@
+<h2>Welcome, {{ user.username }}</h2>
+<p>Your role: {{ user.role }}</p>
+
+{% if user.role == 'TEACHER' %}
+    <a href="{% url 'accounts:teacher_panel' %}">Teacher Panel</a><br>
+{% elif user.role == 'STUDENT' %}
+    <a href="{% url 'accounts:student_panel' %}">Student Panel</a><br>
+{% endif %}
+
+<a href="{% url 'accounts:logout' %}">Logout</a>

@@ -1,0 +1,100 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block body %}
+<nav class="navbar">
+  <a href="#" class="brand">📚 ClassRoom</a>
+  <div class="nav-right">
+    <span class="user-badge badge-teacher">👩‍🏫 Teacher</span>
+    <span style="font-size:.9rem; font-weight:600;">{{ request.user.username }}</span>
+    <a href="{% url 'accounts:logout' %}" class="btn-logout">Log out</a>
+  </div>
+</nav>
+
+<div class="main">
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="page-header">
+    <h1>Teacher Dashboard</h1>
+    <p>Create and manage your classes below.</p>
+  </div>
+
+  <div class="grid-2">
+    <!-- Create Class Form -->
+    <div class="card">
+      <div class="card-header" style="color: var(--teacher);">
+        ➕ Create a New Class
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Class Name *</label>
+          {{ create_form.name }}
+          {{ create_form.name.errors }}
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          {{ create_form.subject }}
+          {{ create_form.subject.errors }}
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          {{ create_form.description }}
+          {{ create_form.description.errors }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          🎉 Create Class
+        </button>
+      </form>
+    </div>
+
+    <!-- Class List -->
+    <div>
+      <div class="card-header">
+        📋 My Classes
+        <span style="margin-left:auto; font-size:.8rem; color:var(--gray-600); font-weight:400;">
+          {{ classes.count }} class{{ classes.count|pluralize:"es" }}
+        </span>
+      </div>
+
+      {% if classes %}
+        <div class="grid-classes">
+          {% for cls in classes %}
+          <div class="class-card">
+            <h3>{{ cls.name }}</h3>
+            <div class="subject">{{ cls.subject|default:"No subject" }}</div>
+            <div class="code-badge">{{ cls.code }}</div>
+            <div class="meta">
+              👥 {{ cls.student_count }} student{{ cls.student_count|pluralize }}<br>
+              📅 {{ cls.created_at|date:"M d, Y" }}
+            </div>
+            {% if cls.description %}
+              <p style="font-size:.8rem;color:var(--gray-600);margin-top:8px;">{{ cls.description|truncatechars:80 }}</p>
+            {% endif %}
+            <div class="card-actions">
+              <span style="font-size:.75rem;color:var(--gray-600);">Code: <strong>{{ cls.code }}</strong></span>
+              <form method="post" action="{% url 'delete_class' cls.id %}" style="margin-left:auto;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger"
+                  onclick="return confirm('Delete {{ cls.name }}?')">🗑 Delete</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card empty-state">
+          <div class="icon">🏫</div>
+          <p>No classes yet.<br>Create your first class using the form!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

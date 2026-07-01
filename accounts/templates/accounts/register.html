@@ -1,0 +1,97 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Register — READScore{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/role-toggle.css' %}">
+<link rel="stylesheet" href="{% static 'css/field-tooltip.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-page-wrap">
+  <div class="login-card">
+    <h2>Register</h2>
+
+    {% if messages %}
+      <div class="login-messages">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="login-form">
+      {% csrf_token %}
+
+      <div class="role-toggle">
+        {% for radio in form.role %}
+          <label class="role-toggle-option{% if radio.data.selected %} is-active{% endif %}">
+            {{ radio.tag }}
+            <span>{{ radio.choice_label }}</span>
+          </label>
+        {% endfor %}
+        <span class="role-toggle-thumb"></span>
+      </div>
+
+      <p>
+        <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}:</label>
+        {{ form.first_name }}
+        {{ form.first_name.errors }}
+      </p>
+
+      <p>
+        <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}:</label>
+        {{ form.last_name }}
+        {{ form.last_name.errors }}
+      </p>
+
+      <p>
+        <div class="field-label-row">
+          <label for="{{ form.username.id_for_label }}">{{ form.username.label }}:</label>
+          <span class="field-tooltip">
+            <span class="field-tooltip-icon" tabindex="0">i</span>
+            <span class="field-tooltip-popup">{{ form.username.help_text }}</span>
+          </span>
+        </div>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </p>
+
+      <p>
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </p>
+
+      <p>
+        <div class="field-label-row">
+          <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}:</label>
+          <span class="field-tooltip">
+            <span class="field-tooltip-icon" tabindex="0">i</span>
+            <span class="field-tooltip-popup">{{ form.password1.help_text|safe }}</span>
+          </span>
+        </div>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+      </p>
+
+      <p>
+        <div class="field-label-row">
+          <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}:</label>
+          <span class="field-tooltip">
+            <span class="field-tooltip-icon" tabindex="0">i</span>
+            <span class="field-tooltip-popup">{{ form.password2.help_text }}</span>
+          </span>
+        </div>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+      </p>
+
+      <button type="submit" class="login-submit-btn">Register</button>
+    </form>
+
+    <p class="login-register-row">Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+  </div>
+</div>
+{% endblock %}

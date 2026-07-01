@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+
+{% block title %}READScore for Comprehension Scoring{% endblock %}
+{% block nav_home_active %}active{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <span class="badge"><span class="dot"></span>PHIL-IRI ALIGNED ASSESSMENT</span>
+  <h1>Automated Reading Comprehension Scoring</h1>
+  <p class="subtitle">
+    Phil-IRI aligned. Bloom's Taxonomy weighted. NLI-powered. A smarter way to evaluate
+    Grade 6 reading comprehension with semantic precision.
+  </p>
+  <div class="hero-actions">
+        {% if user.is_authenticated %}
+        <!-- ADD CONTENT -->
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          <a href="{% url 'accounts:register' %}" class="btn btn-outline">Sign in to Classroom</a>
+        {% endif %}
+  </div>
+</section>
+{% endblock %}

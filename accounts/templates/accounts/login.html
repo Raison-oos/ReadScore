@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Login — READScore{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-page-wrap">
+  <div class="login-card">
+    <h2>Log in</h2>
+
+    <p class="login-divider">Use your email to log in</p>
+
+    {% if messages %}
+      <div class="login-messages">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="login-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+
+      <div class="login-extra-row">
+        <label class="login-remember">
+          <input type="checkbox" name="remember_me">
+          Remember Me
+        </label>
+        <a href="#" class="login-forgot">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="login-submit-btn">Submit</button>
+    </form>
+
+    <p class="login-register-row">No account? <a href="{% url 'accounts:register' %}">Register</a></p>
+
+    <div class="login-footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms &amp; Conditions</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

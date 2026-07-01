@@ -1,0 +1,60 @@
+.role-toggle {
+  position: relative;
+  display: flex;
+  background: #f1f1f3;
+  border-radius: 999px;
+  padding: 4px;
+  margin: 0 0 22px;
+  width: 100%;
+}
+
+.role-toggle-option {
+  position: relative;
+  flex: 1;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.role-toggle-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.role-toggle-option.is-active {
+  color: var(--color-text);
+}
+
+.role-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Teacher is the first (left) option, Student is the second (right) option.
+   The thumb starts on the left by default (under Teacher), and should only
+   move right when STUDENT is the one actually checked. */
+.role-toggle:has(input[value="STUDENT"]:checked) .role-toggle-thumb {
+  left: auto;
+  right: 4px;
+}
