@@ -13,7 +13,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created successfully.")
-            return redirect('accounts:dashboard')
+            return redirect('classroom:dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -23,7 +23,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('accounts:dashboard')
+        return redirect('classroom:dashboard')
 
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -33,7 +33,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('accounts:dashboard')
+                return redirect('classroom:classroom')
         else:
             messages.error(request, "Invalid username or password.")
     else:
@@ -49,7 +49,7 @@ def logout_view(request):
 
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
-    return render(request, 'accounts/dashboard.html')
+    return render(request, 'classroom/dashboard.html')
 
 
 @role_required('TEACHER')

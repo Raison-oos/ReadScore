@@ -1,0 +1,18 @@
+{
+  "label_to_id": {
+    "BT1": 0,
+    "BT2": 1,
+    "BT3": 2,
+    "BT4": 3,
+    "BT5": 4,
+    "BT6": 5
+  },
+  "id_to_label": {
+    "0": "Remember",
+    "1": "Understand",
+    "2": "Apply",
+    "3": "Analyze",
+    "4": "Evaluate",
+    "5": "Create"
+  }
+}

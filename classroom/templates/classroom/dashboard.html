@@ -1,0 +1,119 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}Dashboard — READScore{% endblock %}
+
+{% block extra_head %}
+        <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="page-head">
+            <span class="eyebrow">Passage Builder</span>
+            <h1>Create Question &amp; Answer</h1>
+            <p>Pair this passage with comprehension questions and answer keys. READScore uses these to score student responses against Phil-IRI reading levels and Bloom's Taxonomy.</p>
+        </div>
+
+        <div class="test-code-banner">
+            Test Code: <strong id="testCode">{{ pending_test_code }}</strong>
+        </div>
+
+        {% if messages %}
+            <div class="page-messages">
+            {% for message in messages %}
+                <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" id="builderForm" novalidate>
+            {% csrf_token %}
+
+            <div class="workspace">
+
+                <!-- Passage panel -->
+                <div class="panel passage-panel">
+                    <div class="passage-header">
+                        <span class="label">Reading Passage</span>
+                        <h2>Passage</h2>
+                    </div>
+                    <div class="passage-body" id="passageBody">
+                        <span class="suggested-tag" id="suggestedTag">Suggested passage</span>
+
+                        {{ test_form.passage }}
+                        {% if test_form.passage.errors %}
+                            <div class="field-error">{{ test_form.passage.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Question & Answer panel -->
+                <div class="panel qa-panel">
+                    <div class="qa-header">
+                        <h2>Question and Answer</h2>
+                        <button class="btn-create" type="submit">Create</button>
+                    </div>
+
+                    {{ formset.management_form }}
+
+                    {% if formset.non_form_errors %}
+                        <div class="field-error">{{ formset.non_form_errors.0 }}</div>
+                    {% endif %}
+
+                    <div class="qa-list" id="qaList">
+                        {% for qform in formset %}
+                            <div class="qa-card" data-form-index="{{ forloop.counter0 }}">
+                                <span class="qa-card-index">{{ forloop.counter }}</span>
+
+                                {% if qform.instance.pk %}{{ qform.DELETE }}{% endif %}
+                                {% for hidden in qform.hidden_fields %}{{ hidden }}{% endfor %}
+
+                                <span class="qa-field-label">Question</span>
+                                {{ qform.question }}
+                                {% if qform.question.errors %}
+                                    <div class="field-error">{{ qform.question.errors.0 }}</div>
+                                {% endif %}
+
+                                <span class="qa-field-label">Answer Key</span>
+                                {{ qform.answer_key }}
+                                {% if qform.answer_key.errors %}
+                                    <div class="field-error">{{ qform.answer_key.errors.0 }}</div>
+                                {% endif %}
+
+                                <div class="qa-card-footer">
+                                    <button class="btn-delete" type="button">Delete</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="qa-footer">
+                        <button class="btn-add" type="button" id="addQuestionBtn">+ Add Question</button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+        <!-- Hidden template used by JS to clone a brand-new blank question card.
+             Django's formset.empty_form renders field names/ids with the
+             literal string __prefix__ standing in for the numeric index;
+             the JS below swaps __prefix__ for the next real index. -->
+        <template id="emptyFormTemplate">
+            <div class="qa-card" data-form-index="__prefix__">
+                <span class="qa-card-index"></span>
+                {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <span class="qa-field-label">Question</span>
+                {{ formset.empty_form.question }}
+                <span class="qa-field-label">Answer Key</span>
+                {{ formset.empty_form.answer_key }}
+                <div class="qa-card-footer">
+                    <button class="btn-delete" type="button">Delete</button>
+                </div>
+            </div>
+        </template>
+
+        <script src="{% static 'js/teacher_dashboard.js' %}"></script>
+
+{% endblock %}
+
+<a href="{% url 'accounts:logout' %}">Logout</a>

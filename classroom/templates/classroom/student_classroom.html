@@ -1,0 +1,10 @@
+<h1>Enter Test Code</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.test_code }}
+    {% if form.test_code.errors %}
+        <p>{{ form.test_code.errors.0 }}</p>
+    {% endif %}
+    <button type="submit">Submit</button>
+</form>
+<a href="{% url 'accounts:logout' %}">Logout</a>
