@@ -17,7 +17,7 @@ def classroom_view(request):
     if request.method == "POST":
         form = TestCodeForm(request.POST)
         if form.is_valid():
-            return redirect("take_test", test_code=form.cleaned_data["test_code"])
+            return redirect("classroom:take_test", test_code=form.cleaned_data["test_code"])
     else:
         form = TestCodeForm()
     return render(request, "classroom/student_classroom.html", {"form": form})
@@ -25,7 +25,7 @@ def classroom_view(request):
 @login_required
 def dashboard_view(request):
     if getattr(request.user, "role", None) != "TEACHER":
-        return render(request, "classroom/dashboard.html")
+        return render(request, "classroom/student_dashboard.html")
 
     if request.method == "POST":
         test_form = TestForm(request.POST)
@@ -63,7 +63,7 @@ def dashboard_view(request):
         "formset": formset,
         "pending_test_code": request.POST.get("test_code") if request.method == "POST" else generate_test_code(),
     }
-    return render(request, "classroom/dashboard.html", context)
+    return render(request, "classroom/teacher_dashboard.html", context)
 
 
 #student answer
@@ -75,7 +75,6 @@ def take_test(request, test_code):
     if request.method == "POST":
         errors = {}
         previous_answers = {}
-
         for question in questions:
             answer_text = request.POST.get(f"answer_{question.id}", "").strip()
             previous_answers[question.id] = answer_text
@@ -83,7 +82,7 @@ def take_test(request, test_code):
                 errors[question.id] = "Please answer this question."
 
         if errors:
-            return render(request, "dashboard-answer.html", {
+            return render(request, "classroom/student_dashboard.html", {
                 "test": test,
                 "questions": questions,
                 "errors": errors,
@@ -106,13 +105,10 @@ def take_test(request, test_code):
                     },
                 )
 
-        return render(request, "dashboard.html", {
-            "test": test,
-            "questions": questions,
-            "submitted": True,
-        })
+        messages.success(request, "Your answers have been submitted.")
+        return redirect("classroom:classroom")#redirect to exam result
 
-    return render(request, "dashboard.html", {
+    return render(request, "classroom/student_dashboard.html", {
         "test": test,
         "questions": questions,
     })

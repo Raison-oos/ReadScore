@@ -47,16 +47,16 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
-@login_required(login_url='accounts:login')
-def dashboard_view(request):
-    return render(request, 'classroom/dashboard.html')
+#@login_required(login_url='accounts:login')
+#def dashboard_view(request):
+    #return render(request, 'classroom/dashboard.html')
 
 
-@role_required('TEACHER')
-def teacher_panel_view(request):
-    return render(request, 'accounts/teacher_panel.html')
+#@role_required('TEACHER')
+#def teacher_panel_view(request):
+    #return render(request, 'accounts/teacher_panel.html')
 
 
-@role_required('STUDENT')
-def student_panel_view(request):
-    return render(request, 'accounts/student_panel.html')
+#@role_required('STUDENT')
+#def student_panel_view(request):
+    #return render(request, 'accounts/student_panel.html')
