@@ -1,2 +1,52 @@
-<a href="{% url 'classroom:dashboard' %}">Create Test</a><br>
-<a href="{% url 'accounts:logout' %}">Logout</a>
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}READScore — Teacher{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/teacher_classroom.css' %}">
+{% endblock %}
+
+{% block content %}
+  <!-- Ambient reading-themed background -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="blob blob-blue"></div>
+    <div class="blob blob-gold"></div>
+
+    <div class="text-lines lines-a">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="text-lines lines-b">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <svg class="book-glyph book-a" viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 6C10 2 22 2 30 6V42C22 38 10 38 2 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <path d="M62 6C54 2 42 2 34 6V42C42 38 54 38 62 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+    </svg>
+    <svg class="book-glyph book-b" viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 6C10 2 22 2 30 6V42C22 38 10 38 2 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+      <path d="M62 6C54 2 42 2 34 6V42C42 38 54 38 62 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <main class="stage">
+    <div class="role-card" id="roleCard">
+      <div class="avatar-circle">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M4.5 20C4.5 15.8 7.8 13.5 12 13.5C16.2 13.5 19.5 15.8 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <span class="role-label">Teacher</span>
+
+      <!-- Action Button (Removed Logout Button) -->
+       <form action="{% url 'classroom:dashboard' %}" method="get" style="width: 100%; margin: 0;">
+            <button class="glass-btn glass-btn-primary" id="createTestBtn" type="submit">
+                <span>Create Test</span>
+            </button>
+        </form>
+    </div>
+  </main>
+
+<script src="{% static 'js/teacher_classroom.js' %}"></script>
+{% endblock %}

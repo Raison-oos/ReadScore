@@ -53,7 +53,14 @@ class TestCodeForm(forms.Form):
     test_code = forms.CharField(
         max_length=20,
         required=True,
-        widget=forms.TextInput(attrs={"placeholder": "Enter test code"}),
+        #widget=forms.TextInput(attrs={"placeholder": "Enter test code"}),
+        widget=forms.TextInput(attrs={
+            'id': 'classCodeInput',     
+            'class': 'glass-input',     # Crucial for student_dashboard.js to query it
+            'placeholder': 'Enter Class Code',
+            'autocomplete': 'off',
+            'maxlength': '20'
+        }),
         error_messages={"required": "Please enter a test code."},
     )
 
