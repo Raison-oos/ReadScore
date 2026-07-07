@@ -123,9 +123,23 @@ def take_test(request, test_code):
                     },
                 )
         messages.success(request, "Your answers have been submitted.")
-        return redirect("classroom:classroom")#redirect to exam result
+        return redirect("classroom:student_result", test_code=test.test_code)
 
     return render(request, "classroom/student_dashboard.html", {
         "test": test,
         "questions": questions,
+    })
+
+@login_required
+def student_result(request, test_code):
+    test = get_object_or_404(Test, test_code=test_code)
+    answers = (
+        StudentAnswer.objects
+        .filter(student=request.user, test=test)
+        .select_related("question")
+        .order_by("question__order")
+    )
+    return render(request, "classroom/student_result.html", {
+        "test": test,
+        "answers": answers,
     })

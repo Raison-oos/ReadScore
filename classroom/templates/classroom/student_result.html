@@ -1,0 +1,95 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}READScore — Your Result{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/student_result.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="main-dashboard-override">
+    <div class="bg-scene" aria-hidden="true">
+      <div class="blob blob-blue"></div>
+      <div class="blob blob-gold"></div>
+      <div class="text-lines lines-a"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="text-lines lines-b"><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <main class="stage">
+      <div class="app-window">
+
+        <div class="window-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+
+        <div class="window-body">
+
+          <header class="dash-header">
+            <div class="who">
+              <div class="avatar-circle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M4.5 20C4.5 15.8 7.8 13.5 12 13.5C16.2 13.5 19.5 15.8 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="who-label">Student</span>
+            </div>
+          </header>
+
+          <!-- Question list -->
+          <section class="question-panel">
+            <div class="question-scroll" id="questionScroll">
+
+              {% for answer in answers %}
+                <div class="question-row" data-correct="{{ answer.is_correct|yesno:'true,false' }}">
+                  <div class="q-main">
+                    <span class="q-number">{{ forloop.counter }}</span>
+                    <span class="q-text">{{ answer.question.question }}</span>
+                    <span class="bloom-pill">{{ answer.question.get_blooms_level_display }}</span>
+                    {% if answer.is_correct %}
+                      <span class="result-icon correct">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                          <path class="mark" d="M8 12.3L10.7 15L16 9.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    {% else %}
+                      <span class="result-icon wrong">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                          <path class="mark" d="M9 9L15 15M15 9L9 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                    {% endif %}
+                    <button class="expand-btn" type="button" aria-expanded="false">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="q-answer">
+                    <div class="q-answer-inner">
+                      <span class="q-answer-label">Your Answer</span>
+                      <p>{{ answer.answer_text }}</p>
+                    </div>
+                  </div>
+                </div>
+              {% empty %}
+                <p>No answers found for this test.</p>
+              {% endfor %}
+
+            </div>
+          </section>
+
+          <footer class="dash-footer">
+            <a href="{% url 'classroom:classroom' %}" class="glass-btn glass-btn-primary btn-done">
+              <span>Done</span>
+            </a>
+          </footer>
+
+        </div>
+      </div>
+    </main>
+  </div>
+<script src="{% static 'js/student_result.js' %}"></script>
+{% endblock %}
