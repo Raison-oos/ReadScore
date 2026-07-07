@@ -73,22 +73,31 @@ class Question(models.Model):
 #Student Answer
 class StudentAnswer(models.Model):
     student = models.ForeignKey(
-        "accounts.User",  # swap for your actual user model path
+        "accounts.User",
         on_delete=models.CASCADE,
         related_name="answers",
     )
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="student_answers")
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="student_answers")
     answer_text = models.TextField()
-    is_correct = models.BooleanField(null=True, blank=True)  # null = not yet graded
+
+    is_correct = models.BooleanField(null=True, blank=True)
+
+    # Debug/breakdown fields — not used for grading logic itself, just
+    # to see which stage of determine_correctness passed or failed.
+    # null = check never ran (short-circuited by an earlier failed stage).
+    is_grounded = models.BooleanField(null=True, blank=True)
+    is_relevant = models.BooleanField(null=True, blank=True)
+    is_similar = models.BooleanField(null=True, blank=True)
+
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("student", "question")  # one answer per question per student
+        unique_together = ("student", "question")
 
     def clean(self):
         if not self.answer_text or not self.answer_text.strip():
             raise ValidationError({"answer_text": "Answer cannot be empty."})
 
     def __str__(self):
-        return f"{self.student} — {self.question} ({'✓' if self.is_correct else '✗' if self.is_correct is False else '?'})"
+        return f"{self.student} — {self.question}"

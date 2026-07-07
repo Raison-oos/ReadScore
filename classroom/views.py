@@ -1,10 +1,11 @@
+from .ml.classifier import classify_blooms
+from .ml.answer_scorer import get_scorer
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Test, generate_test_code, Question, StudentAnswer
 from .forms import TestForm, QuestionFormSet, TestCodeForm
-from .ml.classifier import classify_blooms
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
@@ -90,11 +91,15 @@ def take_test(request, test_code):
             })
 
         with transaction.atomic():
+            scorer = get_scorer()
+
             for question in questions:
                 answer_text = previous_answers[question.id]
-                is_correct = (
-                    answer_text.lower() == question.answer_key.strip().lower()
+
+                is_correct, breakdown = scorer.determine_correctness(
+                    test.passage, question.question, answer_text, question.answer_key
                 )
+
                 StudentAnswer.objects.update_or_create(
                     student=request.user,
                     question=question,
@@ -102,9 +107,11 @@ def take_test(request, test_code):
                         "test": test,
                         "answer_text": answer_text,
                         "is_correct": is_correct,
+                        "is_grounded": breakdown["is_grounded"],
+                        "is_relevant": breakdown["is_relevant"],
+                        "is_similar": breakdown["is_similar"],
                     },
                 )
-
         messages.success(request, "Your answers have been submitted.")
         return redirect("classroom:classroom")#redirect to exam result
 
