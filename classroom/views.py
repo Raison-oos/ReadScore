@@ -13,7 +13,8 @@ from django.db import transaction
 @login_required
 def classroom_view(request):
     if getattr(request.user, "role", None) == "TEACHER":
-        return render(request, 'classroom/teacher_classroom.html')
+        tests = Test.objects.filter(created_by=request.user).order_by("-created_at")
+        return render(request, "classroom/teacher_classroom.html", {"tests": tests})
 
     if request.method == "POST":
         form = TestCodeForm(request.POST)
@@ -51,7 +52,7 @@ def dashboard_view(request):
                     obj.delete()
 
             messages.success(request, f"Test saved. Code: {test.test_code}")
-            return redirect("classroom:dashboard")
+            return redirect("classroom:classroom")
         else:
             messages.error(request, "Please fix the errors below.")
 
@@ -65,6 +66,15 @@ def dashboard_view(request):
         "pending_test_code": request.POST.get("test_code") if request.method == "POST" else generate_test_code(),
     }
     return render(request, "classroom/teacher_dashboard.html", context)
+
+#delete button
+@login_required
+def delete_test(request, test_code):
+    test = get_object_or_404(Test, test_code=test_code, created_by=request.user)
+    if request.method == "POST":
+        test.delete()
+        messages.success(request, f"Test {test_code} deleted.")
+    return redirect("classroom:classroom")
 
 
 #student answer

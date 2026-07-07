@@ -1,9 +1,63 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  /* ===== Design-only button feedback (no navigation logic) ===== */
-  const buttons = document.querySelectorAll('.glass-btn');
+  const cards = Array.from(document.querySelectorAll('.test-card'));
 
-  buttons.forEach(btn => {
+  /* Stagger the entrance animation per card (design only) */
+  cards.forEach((card, i) => {
+    card.style.animationDelay = (i * 0.06) + 's';
+  });
+
+  /* ===== Single-select highlight (click card body to focus it) =====
+     Purely visual — doesn't affect what data gets sent anywhere. */
+  cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.icon-btn') || e.target.closest('form')) return;
+      cards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+  });
+
+  /* ===== Delete test: confirm, then let the real form submission
+     happen. The exit animation only plays after the user confirms —
+     the actual deletion is a real POST request to the server, not
+     something JS fakes locally. ===== */
+  document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const card = form.closest('.test-card');
+      const testCode = card ? card.dataset.testCode : 'this test';
+
+      if (!window.confirm(`Delete ${testCode}? This cannot be undone.`)) {
+        e.preventDefault();
+        return;
+      }
+
+      if (card) {
+        card.classList.add('removing');
+      }
+      // form submits normally after this — no e.preventDefault(),
+      // so the browser actually sends the POST request to Django
+    });
+  });
+
+  /* ===== Export test record: brief visual confirmation on the icon.
+     The actual file download is handled by the browser navigating to
+     the real href — this just adds a flash of feedback. ===== */
+  document.querySelectorAll('.export-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.style.transition = 'background 0.15s ease, border-color 0.15s ease, color 0.15s ease';
+      btn.style.background = '#EAF3EC';
+      btn.style.borderColor = '#BFE0CB';
+      btn.style.color = '#1F7A4D';
+      setTimeout(() => {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 500);
+    });
+  });
+
+  /* ===== Glass button ripple feedback (Create Test button) ===== */
+  document.querySelectorAll('.glass-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const rect = btn.getBoundingClientRect();
       const ripple = document.createElement('span');
@@ -29,18 +83,5 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => ripple.remove(), 520);
     });
   });
-
-  /* Design-only: Subtle lift-in transition for the button on load */
-  const primaryButton = document.getElementById('createTestBtn');
-  if (primaryButton) {
-    primaryButton.style.opacity = '0';
-    primaryButton.style.transform = 'translateY(6px)';
-    primaryButton.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-    
-    setTimeout(() => {
-      primaryButton.style.opacity = '1';
-      primaryButton.style.transform = 'translateY(0)';
-    }, 260);
-  }
 
 });
