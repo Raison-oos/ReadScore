@@ -1,13 +1,51 @@
-{% extends "core/base.html" %}
 {% load static %}
-{% block title %}Dashboard — READScore{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — READScore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
+  
 
-{% block extra_head %}
-        <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
-{% endblock %}
+</head>
+<body>
+  <div class="site-wrapper">
+    
 
-{% block content %}
-  <div>
+    
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span>READScore</span>
+          <span class="logo-sub">for Comprehension Scoring</span>
+        </div>
+        <nav class="main-nav">
+          <a href="{% url 'home' %}" class="">Home</a>
+          <a href="{% url 'about' %}" class="">About</a>
+          <a href="{% url 'faq' %}" class="">FAQ</a>
+          <a href="{% url 'contact' %}" class="">Contact</a>
+        </nav>
+        <div class="header-actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+        {% else %}
+          <a href="{% url 'accounts:register' %}" class="signin-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            Sign In
+          </a>
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+        </div>
+        {% endif %}
+      </div>
+      
+    </header>
+
+    <main>
+      
         <div class="page-head">
             <span class="eyebrow">Passage Builder</span>
             <h1>Create Question &amp; Answer</h1>
@@ -114,5 +152,42 @@
         </template>
 
         <script src="{% static 'js/teacher_dashboard.js' %}"></script>
+
+
+    </main>
+    
+
+    
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="features-inner footer-features">
+          <div class="feature-card">
+            <div class="feature-eyebrow">NLI SCORING</div>
+            <div class="feature-title">DeBERTa Semantic Gate</div>
+            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BERTSCORE</div>
+            <div class="feature-title">Contextual Similarity</div>
+            <p class="feature-desc">Measures semantic overlap between student and reference answers using BERT embeddings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BLOOM'S WEIGHT</div>
+            <div class="feature-title">Cognitive-Level Scoring</div>
+            <p class="feature-desc">Questions are weighted by cognitive level — from Remember to Analyze — for richer insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">PHIL-IRI</div>
+            <div class="feature-title">Official Reading Levels</div>
+            <p class="feature-desc">Results map directly to Independent, Instructional, or Frustration reading levels.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 READScore. All rights reserved.</span>
+        <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
+      </div>
+    </footer>
   </div>
-{% endblock %}
+</body>
+</html>

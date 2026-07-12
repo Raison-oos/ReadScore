@@ -1,102 +1,178 @@
-{% extends "core/base.html" %}
 {% load static %}
 {% load dict_extras %}
-{% block title %}READScore — Answer the Questions{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>READScore — Answer the Questions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+  
 
-{% block content %}
-  <div>
-    <div class="page-head">
-      <span class="eyebrow">Comprehension Check</span>
-      <h1>Answer the Questions</h1>
-      <p>Read the passage carefully, then answer every question in your own words. You can hide the passage at any time using the eye icon.</p>
-    </div>
+</head>
+<body>
+  <div class="site-wrapper">
+    
 
-    <div class="workspace" id="workspace">
-
-      <!-- Passage panel -->
-      <div class="panel passage-panel" id="passagePanel">
-
-        <div class="passage-toggle-row">
-          <button class="eye-toggle" id="eyeToggle" type="button" aria-label="Hide passage" aria-pressed="false">
-            <span class="eye-icon" id="eyeIcon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1.5 12C1.5 12 5 5 12 5C19 5 22.5 12 22.5 12C22.5 12 19 19 12 19C5 19 1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/>
-              </svg>
-            </span>
-          </button>
-          <span class="passage-title-inline" id="passageTitleInline">Passage</span>
+    
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span>READScore</span>
+          <span class="logo-sub">for Comprehension Scoring</span>
         </div>
-
-        <div class="passage-content" id="passageContent">
-          <div class="passage-body">
-            <span class="suggested-tag">Test Code: {{ test.test_code }}</span>
-            <div class="passage-text">{{ test.passage }}</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Answer panel -->
-      <div class="panel answer-panel">
-
-        {% if submitted %}
-          <div class="submit-banner success">All answers submitted. Great work!</div>
-        {% elif errors %}
-          <div class="submit-banner warning">
-            {% if errors|length == 1 %}
-              Please answer the highlighted question before submitting.
-            {% else %}
-              Please answer the {{ errors|length }} highlighted questions before submitting.
-            {% endif %}
-          </div>
+        <nav class="main-nav">
+          <a href="{% url 'home' %}" class="">Home</a>
+          <a href="{% url 'about' %}" class="">About</a>
+          <a href="{% url 'faq' %}" class="">FAQ</a>
+          <a href="{% url 'contact' %}" class="">Contact</a>
+        </nav>
+        <div class="header-actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
         {% else %}
-          <div class="submit-banner" id="submitBanner" hidden></div>
+          <a href="{% url 'accounts:register' %}" class="signin-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            Sign In
+          </a>
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+        </div>
         {% endif %}
+      </div>
+      
+    </header>
 
-        <form method="post" id="answerForm">
-          {% csrf_token %}
+    <main>
+      
+  <div class="page-head">
+    <span class="eyebrow">Comprehension Check</span>
+    <h1>Answer the Questions</h1>
+    <p>Read the passage carefully, then answer every question in your own words. You can hide the passage at any time using the eye icon.</p>
+  </div>
 
-          <div class="qa-scroll" id="qaScroll">
-            {% for question in questions %}
-              <div class="question-card{% if errors and question.id in errors %} has-warning{% endif %}" data-index="{{ forloop.counter }}">
-                <div class="question-head">
-                  <span class="q-number">{{ forloop.counter }}</span>
-                  <span class="q-text">{{ question.question }}</span>
-                  <span class="q-blooms">{{ question.get_blooms_level_display }}</span>
-                  <span class="q-warning{% if errors and question.id in errors %} show{% endif %}" title="Please answer this question" {% if not errors or question.id not in errors %}hidden{% endif %}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 3.5L22 20.5H2L12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                      <path d="M12 10V14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                      <circle cx="12" cy="17.3" r="0.9" fill="currentColor"/>
-                    </svg>
-                  </span>
-                </div>
-                <div class="answer-box">
-                  <textarea class="answer-input" name="answer_{{ question.id }}" placeholder="Type your answer here...">{{ previous_answers|get_item:question.id|default:"" }}</textarea>
-                  <span class="send-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="currentColor"/>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
+  <div class="workspace" id="workspace">
 
-          <div class="answer-footer">
-            <button class="btn-submit" id="submitBtn" type="submit">Submit</button>
-          </div>
+    <!-- Passage panel -->
+    <div class="panel passage-panel" id="passagePanel">
 
-        </form>
+      <div class="passage-toggle-row">
+        <button class="eye-toggle" id="eyeToggle" type="button" aria-label="Hide passage" aria-pressed="false">
+          <span class="eye-icon" id="eyeIcon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.5 12C1.5 12 5 5 12 5C19 5 22.5 12 22.5 12C22.5 12 19 19 12 19C5 19 1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </span>
+        </button>
+        <span class="passage-title-inline" id="passageTitleInline">Passage</span>
+      </div>
 
+      <div class="passage-content" id="passageContent">
+        <div class="passage-body">
+          <span class="suggested-tag">Test Code: {{ test.test_code }}</span>
+          <div class="passage-text">{{ test.passage }}</div>
+        </div>
       </div>
 
     </div>
-</div>
+
+    <!-- Answer panel -->
+    <div class="panel answer-panel">
+
+      {% if submitted %}
+        <div class="submit-banner success">All answers submitted. Great work!</div>
+      {% elif errors %}
+        <div class="submit-banner warning">
+          {% if errors|length == 1 %}
+            Please answer the highlighted question before submitting.
+          {% else %}
+            Please answer the {{ errors|length }} highlighted questions before submitting.
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="submit-banner" id="submitBanner" hidden></div>
+      {% endif %}
+
+      <form method="post" id="answerForm">
+        {% csrf_token %}
+
+        <div class="qa-scroll" id="qaScroll">
+          {% for question in questions %}
+            <div class="question-card{% if errors and question.id in errors %} has-warning{% endif %}" data-index="{{ forloop.counter }}">
+              <div class="question-head">
+                <span class="q-number">{{ forloop.counter }}</span>
+                <span class="q-text">{{ question.question }}</span>
+                <span class="q-blooms">{{ question.get_blooms_level_display }}</span>
+                <span class="q-warning{% if errors and question.id in errors %} show{% endif %}" title="Please answer this question" {% if not errors or question.id not in errors %}hidden{% endif %}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3.5L22 20.5H2L12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                    <path d="M12 10V14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <circle cx="12" cy="17.3" r="0.9" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="answer-box">
+                <textarea class="answer-input" name="answer_{{ question.id }}" placeholder="Type your answer here...">{{ previous_answers|get_item:question.id|default:"" }}</textarea>
+                <span class="send-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="answer-footer">
+          <button class="btn-submit" id="submitBtn" type="submit">Submit</button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
 <script src="{% static 'js/student_dashboard.js' %}"></script>
-{% endblock %}
+
+    </main>
+    
+
+    
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="features-inner footer-features">
+          <div class="feature-card">
+            <div class="feature-eyebrow">NLI SCORING</div>
+            <div class="feature-title">DeBERTa Semantic Gate</div>
+            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BERTSCORE</div>
+            <div class="feature-title">Contextual Similarity</div>
+            <p class="feature-desc">Measures semantic overlap between student and reference answers using BERT embeddings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BLOOM'S WEIGHT</div>
+            <div class="feature-title">Cognitive-Level Scoring</div>
+            <p class="feature-desc">Questions are weighted by cognitive level — from Remember to Analyze — for richer insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">PHIL-IRI</div>
+            <div class="feature-title">Official Reading Levels</div>
+            <p class="feature-desc">Results map directly to Independent, Instructional, or Frustration reading levels.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 READScore. All rights reserved.</span>
+        <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

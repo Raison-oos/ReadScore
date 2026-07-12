@@ -1,5 +1,5 @@
-/* login.css — self-contained stylesheet for this page only.
-   Includes a private copy of the shared base styles (previously shared style.css) so this
+/* register.css — self-contained stylesheet for this page only.
+   Includes a private copy of the shared base styles (previously shared style.css, login.css, role-toggle.css, field-tooltip.css) so this
    file has no dependency on, or conflict with, any other page's CSS. */
 
 /* ===== BASE (private copy) ===== */
@@ -453,4 +453,153 @@ footer.site-footer {
 .login-register-row a {
   color: var(--color-blue);
   font-weight: 600;
+}
+.role-toggle {
+  position: relative;
+  display: flex;
+  background: #f1f1f3;
+  border-radius: 999px;
+  padding: 4px;
+  margin: 0 0 22px;
+  width: 100%;
+}
+
+.role-toggle-option {
+  position: relative;
+  flex: 1;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.role-toggle-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.role-toggle-option.is-active {
+  color: var(--color-text);
+}
+
+.role-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Teacher is the first (left) option, Student is the second (right) option.
+   The thumb starts on the left by default (under Teacher), and should only
+   move right when STUDENT is the one actually checked. */
+.role-toggle:has(input[value="STUDENT"]:checked) .role-toggle-thumb {
+  left: auto;
+  right: 4px;
+}
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.field-label-row label {
+  margin-bottom: 0;
+}
+
+.field-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.field-tooltip-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.field-tooltip-icon:hover,
+.field-tooltip-icon:focus {
+  background: var(--color-blue);
+  color: #ffffff;
+  outline: none;
+}
+
+.field-tooltip-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 240px;
+  background: #1f2430;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 12px 14px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 20;
+  text-align: left;
+}
+
+.field-tooltip-popup ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.field-tooltip-popup li {
+  margin-bottom: 4px;
+}
+
+.field-tooltip-popup li:last-child {
+  margin-bottom: 0;
+}
+
+.field-tooltip-popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  border: 6px solid transparent;
+  border-top-color: #1f2430;
+}
+
+.field-tooltip-icon:hover ~ .field-tooltip-popup,
+.field-tooltip-icon:focus ~ .field-tooltip-popup,
+.field-tooltip:focus-within .field-tooltip-popup {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }

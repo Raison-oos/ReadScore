@@ -1,10 +1,15 @@
+/* about.css — self-contained stylesheet for this page only.
+   Includes a private copy of the shared base styles (previously shared style.css) so this
+   file has no dependency on, or conflict with, any other page's CSS. */
+
+/* ===== BASE (private copy) ===== */
 :root {
   --color-bg: #ffffff;
   --color-text: #15171a;
   --color-text-muted: #6b7280;
   --color-border: #ececec;
-  --color-blue: #2563eb;
-  --color-blue-hover: #1d4ed8;
+  --color-blue: #2452e0; /* matches --blue in the app pages' design system */
+  --color-blue-hover: #1b3bb0; /* matches --blue-deep in the app pages' design system */
   --color-amber: #b45309;
   --color-badge-bg: #1f2430;
   --max-width: 1200px;
@@ -28,7 +33,10 @@ a { text-decoration: none; color: inherit; }
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  /* No background here on purpose: body already supplies the marketing
+     white background, and the app/dashboard pages set their own gradient
+     background on body too — an opaque background here would paint over
+     it on every page. */
 }
 
 /* ---------- HEADER ---------- */
@@ -38,8 +46,6 @@ header.site-header {
 }
 
 .header-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -122,8 +128,14 @@ nav.main-nav a.active {
 }
 .btn-outline:hover { background: #eff4ff; }
 
-/* ---------- MAIN ---------- */
-main {
+/* ---------- MAIN ----------
+   Every page now shares the same header + footer, but the centered
+   marketing layout (flex/background) is scoped to main.marketing-main
+   specifically (used only by home/about/faq/contact). The dashboards,
+   classrooms, login, and register pages have plain <main> elements and
+   fully own their own background/layout via their own stylesheets, so
+   this rule is written to never touch them.  */
+main.marketing-main {
   flex: 1;
   background: var(--color-bg);
   display: flex;
@@ -279,3 +291,4 @@ footer.site-footer {
   .hero-actions { flex-direction: column; align-items: center; }
   .features-inner { grid-template-columns: 1fr; padding: 40px 20px; }
 }
+/* ===== PAGE-SPECIFIC ===== */
