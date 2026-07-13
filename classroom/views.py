@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Test, generate_test_code, Question, StudentAnswer
+from .models import Test, Question, StudentAnswer, TestResult, generate_test_code, BloomsLevel
 from .forms import TestForm, QuestionFormSet, TestCodeForm
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -86,9 +86,11 @@ def take_test(request, test_code):
     if request.method == "POST":
         errors = {}
         previous_answers = {}
+
         for question in questions:
             answer_text = request.POST.get(f"answer_{question.id}", "").strip()
             previous_answers[question.id] = answer_text
+
             if not answer_text:
                 errors[question.id] = "Please answer this question."
 
@@ -103,12 +105,32 @@ def take_test(request, test_code):
         with transaction.atomic():
             scorer = get_scorer()
 
+            BLOOM_WEIGHTS = {
+            BloomsLevel.REMEMBERING: 1,
+            BloomsLevel.UNDERSTANDING: 2,
+            BloomsLevel.APPLYING: 3,
+            BloomsLevel.ANALYZING: 4,
+            BloomsLevel.EVALUATING: 5,
+            BloomsLevel.CREATING: 6,
+            }
+
+            question_scores = []
+            bloom_weights = []
+
             for question in questions:
                 answer_text = previous_answers[question.id]
 
-                is_correct, breakdown = scorer.determine_correctness(
-                    test.passage, question.question, answer_text, question.answer_key
+                result = scorer.score_question(
+                    test.passage,
+                    question.question,
+                    answer_text,
+                    question.answer_key,
                 )
+
+                question_scores.append(result)
+
+                # CHANGE THIS LINE TO MATCH YOUR MODEL
+                bloom_weights.append(BLOOM_WEIGHTS[question.blooms_level])
 
                 StudentAnswer.objects.update_or_create(
                     student=request.user,
@@ -116,12 +138,32 @@ def take_test(request, test_code):
                     defaults={
                         "test": test,
                         "answer_text": answer_text,
-                        "is_correct": is_correct,
-                        "is_grounded": breakdown["is_grounded"],
-                        "is_relevant": breakdown["is_relevant"],
-                        "is_similar": breakdown["is_similar"],
+                        "gate_score": result["gate_score"],
+                        "bert_score": result["bert_score"],
+                        "is_correct": result["is_correct"],
+                        "is_grounded": result["is_grounded"],
+                        "is_relevant": result["is_relevant"],
                     },
                 )
+
+            final_score = scorer.aggregate_final_score(
+                question_scores,
+                bloom_weights,
+            )
+
+            final_percentage = round(final_score * 100, 2)
+
+            level = TestResult.level_for_score(final_percentage)
+
+            TestResult.objects.update_or_create(
+                student=request.user,
+                test=test,
+                defaults={
+                    "final_score": final_percentage,
+                    "phil_iri_level": level,
+                },
+            )
+
         messages.success(request, "Your answers have been submitted.")
         return redirect("classroom:student_result", test_code=test.test_code)
 
@@ -139,7 +181,11 @@ def student_result(request, test_code):
         .select_related("question")
         .order_by("question__order")
     )
+    result = TestResult.objects.filter(student=request.user, test=test).first()
+
     return render(request, "classroom/student_result.html", {
         "test": test,
         "answers": answers,
+        "final_score": result.final_score if result else 0,
+        "phil_iri_level": result.get_phil_iri_level_display() if result else "—",
     })

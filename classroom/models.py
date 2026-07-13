@@ -90,23 +90,16 @@ class Question(models.Model):
 
 #Student Answer
 class StudentAnswer(models.Model):
-    student = models.ForeignKey(
-        "accounts.User",
-        on_delete=models.CASCADE,
-        related_name="answers",
-    )
+    student = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="student_answers")
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="student_answers")
     answer_text = models.TextField()
 
-    is_correct = models.BooleanField(null=True, blank=True)
-
-    # Debug/breakdown fields — not used for grading logic itself, just
-    # to see which stage of determine_correctness passed or failed.
-    # null = check never ran (short-circuited by an earlier failed stage).
+    gate_score = models.IntegerField(null=True, blank=True)      # G_i: 1 or 0
+    bert_score = models.FloatField(null=True, blank=True)         # BERTScore_i
     is_grounded = models.BooleanField(null=True, blank=True)
     is_relevant = models.BooleanField(null=True, blank=True)
-    is_similar = models.BooleanField(null=True, blank=True)
+    is_correct = models.BooleanField(null=True, blank=True)
 
     submitted_at = models.DateTimeField(auto_now_add=True)
 
@@ -119,3 +112,31 @@ class StudentAnswer(models.Model):
 
     def __str__(self):
         return f"{self.student} — {self.question}"
+
+
+class TestResult(models.Model):
+    PHIL_IRI_LEVELS = [
+        ("INDEPENDENT", "Independent"),
+        ("INSTRUCTIONAL", "Instructional"),
+        ("FRUSTRATION", "Frustration"),
+    ]
+
+    student = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="test_results")
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="results")
+    final_score = models.FloatField()  # percentage, 0-100
+    phil_iri_level = models.CharField(max_length=20, choices=PHIL_IRI_LEVELS)
+    computed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("student", "test")
+
+    @staticmethod
+    def level_for_score(score: float) -> str:
+        if score >= 80:
+            return "INDEPENDENT"
+        if score >= 59:
+            return "INSTRUCTIONAL"
+        return "FRUSTRATION"
+
+    def __str__(self):
+        return f"{self.student} — {self.test.test_code}: {self.final_score:.1f}%"

@@ -72,6 +72,20 @@
             </div>
           </header>
 
+          <section class="score-card" id="scoreCard" data-final-score="{{ final_score }}">
+            <div class="score-block">
+              <span class="score-level {% if phil_iri_level == 'Independent' %}level-independent{% elif phil_iri_level == 'Instructional' %}level-instructional{% else %}level-frustration{% endif %}" id="levelText">
+                {{ phil_iri_level }}
+              </span>
+              <span class="score-caption">Phil-IRI Level</span>
+            </div>
+            <div class="score-divider"></div>
+            <div class="score-block">
+              <span class="score-percent"><span id="percentNumber">0</span>%</span>
+              <span class="score-caption">Total Score Percentage</span>
+            </div>
+          </section>         
+
           <!-- Question list -->
           <section class="question-panel">
             <div class="question-scroll" id="questionScroll">

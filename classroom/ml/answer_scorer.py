@@ -2,39 +2,37 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 from sentence_transformers import CrossEncoder
+from bert_score import BERTScorer
 
 
 class AnswerScorer:
-    """
-    Loads the three correctness-checking models once and reuses them for
-    every submission. Access via the module-level get_scorer() below
-    rather than instantiating directly, so Django doesn't reload three
-    transformer models per request.
-
-    Bloom's Taxonomy classification is NOT handled here — that already
-    happens once, at question-creation time, via ml/classifier.py.
-    """
-
     def __init__(self):
+        # ---- NLI ----
         self.nli_name = "MoritzLaurer/deberta-v3-base-mnli-fever-anli"
         self.nli_tokenizer = AutoTokenizer.from_pretrained(self.nli_name)
         self.nli_model = AutoModelForSequenceClassification.from_pretrained(self.nli_name)
         self.nli_model.eval()
 
+        # ---- QNLI ----
         self.qnli_name = "cross-encoder/qnli-distilroberta-base"
         self.qnli_model = CrossEncoder(self.qnli_name)
 
+        # ---- QA ----
         self.qa_pipeline = pipeline(
             "question-answering",
             model="deepset/deberta-v3-large-squad2",
         )
 
+        # ---- BERTScore: semantic similarity between student answer and answer key ----
+        # rescale_with_baseline=False avoids needing an extra baseline-stats
+        # download, which matters for the offline-first setup.
+        self.bert_scorer = BERTScorer(lang="en", rescale_with_baseline=False)
+
     # -------------------------------------------------------------
-    # Low-level model calls
+    # Existing low-level model calls (unchanged)
     # -------------------------------------------------------------
 
     def nli_score(self, context: str, hypothesis: str) -> torch.Tensor:
-        """Index 0 = entailment, 1 = neutral, 2 = contradiction (this checkpoint)."""
         inputs = self.nli_tokenizer(context, hypothesis, return_tensors="pt", truncation=True)
         with torch.no_grad():
             logits = self.nli_model(**inputs).logits
@@ -45,33 +43,14 @@ class AnswerScorer:
         score = self.qnli_model.predict([(question, answer)])[0]
         return torch.sigmoid(torch.tensor(score)).item()
 
-    def qa_score(self, context: str, question: str, answer: str, correct_answer: str) -> dict:
+    def bert_score(self, answer: str, reference: str) -> float:
         """
-        Compares the student's answer against two references: the QA
-        model's own extracted answer, and the teacher's stored answer key.
+        Semantic similarity (F1) between the student's answer and the
+        teacher's answer key — this is BERTScore in the formula.
         """
-        qa_result = self.qa_pipeline(question=question, context=context)
-        expected_answer = qa_result["answer"]
+        P, R, F1 = self.bert_scorer.score([answer], [reference])
+        return F1.item()
 
-        qa_forward = self.nli_score(expected_answer, answer)
-        qa_backward = self.nli_score(answer, expected_answer)
-        qa_entailment = max(qa_forward[0], qa_backward[0]).item()
-
-        key_forward = self.nli_score(correct_answer, answer)
-        key_backward = self.nli_score(answer, correct_answer)
-        key_entailment = max(key_forward[0], key_backward[0]).item()
-
-        best_entailment = max(qa_entailment, key_entailment)
-        best_source = "qa" if qa_entailment >= key_entailment else "key"
-
-        return {
-            "qa_entailment": qa_entailment,
-            "key_entailment": key_entailment,
-            "best_entailment": best_entailment,
-            "best_source": best_source,
-            "expected_answer": expected_answer,
-            "correct_answer": correct_answer,
-        }
     # -------------------------------------------------------------
     # Independent evaluations
     # -------------------------------------------------------------
@@ -99,54 +78,55 @@ class AnswerScorer:
             "question_relevance": qnli_relevance,
         }
 
-    def evaluate_similar(self, story: str, question: str, answer: str, correct_answer: str) -> dict:
-        qa_result = self.qa_score(story, question, answer, correct_answer)
+    # -------------------------------------------------------------
+    # Formula: FinalScore = Σ G_i * BERTScore_i * (b_i / Σb_j)
+    # -------------------------------------------------------------
 
-        is_similar = qa_result["best_entailment"] > 0.6
+    def score_question(self, story: str, question: str, answer: str, correct_answer: str) -> dict:
+        """
+        Computes G_i (gate) and BERTScore_i for a single question.
+        The Bloom's weight (b_i) and normalization (Σb_j) are applied
+        afterward, at the test level, since they need every question's
+        weight to normalize correctly — see aggregate_final_score().
+        """
+        grounded_result = self.evaluate_grounded(story, answer)
+        relevant_result = self.evaluate_relevant(question, answer)
+
+        gate_score = 1 if (grounded_result["is_grounded"] and relevant_result["is_relevant"]) else 0
+        #gate_score = 1 if grounded_result["is_grounded"] else 0
+        bertscore = self.bert_score(answer, correct_answer)
+        is_correct = bertscore > 0.6 and gate_score == 1
 
         return {
-            "is_similar": int(is_similar),
-            "best_entailment": qa_result["best_entailment"],
-            "best_source": qa_result["best_source"],
-            "qa_entailment": qa_result["qa_entailment"],
-            "key_entailment": qa_result["key_entailment"],
-            "expected_answer": qa_result["expected_answer"],
-            "correct_answer": qa_result["correct_answer"],
+            "gate_score": gate_score,
+            "bert_score": bertscore,
+            "is_correct": is_correct,
+            "is_grounded": bool(grounded_result["is_grounded"]),
+            "is_relevant": bool(relevant_result["is_relevant"]),
         }
-    # -------------------------------------------------------------
-    # Combined grading decision
-    # -------------------------------------------------------------
 
-    def determine_correctness(self, story: str, question: str, answer: str, correct_answer: str) -> tuple:
-        grounded_result = self.evaluate_grounded(story, answer)
-        if not grounded_result["is_grounded"]:
-            return False, {
-                "stage_failed": "grounded",
-                "is_grounded": False,
-                "is_relevant": None,
-                "is_similar": None,
-            }
+    @staticmethod
+    def aggregate_final_score(question_scores: list, bloom_weights: list) -> float:
+        """
+        Applies the Bloom's-weighted normalization across all questions
+        in a test: Σ [G_i * BERTScore_i * (b_i / Σb_j)]
 
-        relevant_result = self.evaluate_relevant(question, answer)
-        if not relevant_result["is_relevant"]:
-            return False, {
-                "stage_failed": "relevant",
-                "is_grounded": True,
-                "is_relevant": False,
-                "is_similar": None,
-            }
+        question_scores: list of dicts from score_question(), one per question
+        bloom_weights: list of b_i values (same order/length as question_scores)
 
-        similar_result = self.evaluate_similar(story, question, answer, correct_answer)
-        is_correct = bool(similar_result["is_similar"])
+        Returns a value in [0, 1] — multiply by 100 for a percentage.
+        """
+        total_weight = sum(bloom_weights)
+        if total_weight == 0:
+            return 0.0
 
-        return is_correct, {
-            "stage_failed": None if is_correct else "similar",
-            "is_grounded": True,
-            "is_relevant": True,
-            "is_similar": is_correct,
-            "best_entailment": similar_result["best_entailment"],
-            "best_source": similar_result["best_source"],
-        }
+        final = 0.0
+        for q_score, b_i in zip(question_scores, bloom_weights):
+            final += q_score["gate_score"] * q_score["bert_score"] * (b_i / total_weight)
+            #final += q_score["bert_score"] * (b_i / total_weight)
+
+        return final
+
 
 _scorer = None
 

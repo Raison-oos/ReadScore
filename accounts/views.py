@@ -11,9 +11,9 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            #login(request, user)
             messages.success(request, "Account created successfully.")
-            return redirect('classroom:dashboard')
+            return redirect('accounts:login')
         else:
             messages.error(request, "Please correct the errors below.")
     else:

@@ -1,6 +1,14 @@
 from django.contrib import admin
-from .models import Test, Question, StudentAnswer
+from .models import Test, Question, StudentAnswer, TestResult
 
+BLOOM_WEIGHTS = {
+    "REMEMBER": 1,
+    "UNDERSTAND": 2,
+    "APPLY": 3,
+    "ANALYZE": 4,
+    "EVALUATE": 5,
+    "CREATE": 6,
+}
 
 class QuestionInline(admin.TabularInline):
     model = Question
@@ -29,7 +37,123 @@ class QuestionAdmin(admin.ModelAdmin):
 @admin.register(StudentAnswer)
 class StudentAnswerAdmin(admin.ModelAdmin):
     list_display = (
-        "student", "question", "test", "answer_text", "is_correct",
-        "is_grounded", "is_relevant", "is_similar", "submitted_at",
+        "student",
+        "question",
+        "test",
+        "answer_text",
+        "gate_score",
+        "bert_score",
+        "bloom_weight",
+        "normalized_weight",
+        "weighted_score",
+        "is_grounded",
+        "is_relevant",
+        "is_correct",
+        "submitted_at",
     )
-    list_filter = ("is_correct", "is_grounded", "is_relevant", "is_similar", "test")
+
+    list_filter = (
+        "test",
+        "gate_score",
+        "is_grounded",
+        "is_correct",
+    )
+
+    def bloom_weight(self, obj):
+        return BLOOM_WEIGHTS.get(obj.question.blooms_level, 1)
+
+    bloom_weight.short_description = "Bloom Weight"
+
+    def normalized_weight(self, obj):
+        total = sum(
+            BLOOM_WEIGHTS.get(q.blooms_level, 1)
+            for q in obj.test.questions.all()
+        )
+
+        if total == 0:
+            return 0
+
+        weight = BLOOM_WEIGHTS.get(obj.question.blooms_level, 1)
+        return round(weight / total, 4)
+
+    normalized_weight.short_description = "Normalized Weight"
+
+    def weighted_score(self, obj):
+        total = sum(
+            BLOOM_WEIGHTS.get(q.blooms_level, 1)
+            for q in obj.test.questions.all()
+        )
+
+        if total == 0:
+            return 0
+
+        weight = BLOOM_WEIGHTS.get(obj.question.blooms_level, 1)
+
+        return round(
+            obj.gate_score *
+            obj.bert_score *
+            (weight / total),
+            4,
+        )
+
+    weighted_score.short_description = "Contribution"
+
+
+@admin.register(TestResult)
+class TestResultAdmin(admin.ModelAdmin):
+    list_display = (
+        "student",
+        "test",
+        "question_count",
+        "total_bloom_weight",
+        "raw_weighted_score",
+        "final_score",
+        "phil_iri_level",
+        "computed_at",
+    )
+
+    list_filter = (
+        "phil_iri_level",
+        "test",
+    )
+
+    def question_count(self, obj):
+        return obj.test.questions.count()
+
+    question_count.short_description = "Questions"
+
+    def total_bloom_weight(self, obj):
+        return sum(
+            BLOOM_WEIGHTS.get(q.blooms_level, 1)
+            for q in obj.test.questions.all()
+        )
+
+    total_bloom_weight.short_description = "Σ Bloom Weight"
+
+    def raw_weighted_score(self, obj):
+        answers = StudentAnswer.objects.filter(
+            student=obj.student,
+            test=obj.test
+        ).select_related("question")
+
+        total_weight = sum(
+            BLOOM_WEIGHTS.get(a.question.blooms_level, 1)
+            for a in answers
+        )
+
+        if total_weight == 0:
+            return 0
+
+        score = 0
+
+        for answer in answers:
+            weight = BLOOM_WEIGHTS.get(answer.question.blooms_level, 1)
+            score += (
+                answer.gate_score *
+                answer.bert_score *
+                (weight / total_weight)
+            )
+
+        return round(score, 4)
+
+    raw_weighted_score.short_description = "Σ Weighted Score"
