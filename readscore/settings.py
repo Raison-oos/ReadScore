@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'classroom.apps.ClassroomConfig',
     'accounts',
     'core',
-    #'classroom',
 ]
 
 MIDDLEWARE = [
@@ -126,5 +125,10 @@ AUTH_USER_MODEL = 'accounts.User'
 
 #login redirects
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'accounts:dashboard'
+LOGIN_REDIRECT_URL = 'classroom:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# Sessions end when the browser closes unless the user checks "Remember Me"
+# at login, in which case the view extends the session to SESSION_COOKIE_AGE.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 2 weeks

@@ -1,14 +1,7 @@
 from django.contrib import admin
-from .models import Test, Question, StudentAnswer, TestResult
 
-BLOOM_WEIGHTS = {
-    "REMEMBER": 1,
-    "UNDERSTAND": 2,
-    "APPLY": 3,
-    "ANALYZE": 4,
-    "EVALUATE": 5,
-    "CREATE": 6,
-}
+from .models import BLOOM_WEIGHTS, Question, StudentAnswer, Test, TestResult
+
 
 class QuestionInline(admin.TabularInline):
     model = Question
@@ -30,9 +23,10 @@ class TestAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ("test", "order", "question","answer_key", "blooms_level")
+    list_display = ("test", "order", "question", "answer_key", "blooms_level")
     list_filter = ("blooms_level",)
     readonly_fields = ("blooms_level",)
+
 
 @admin.register(StudentAnswer)
 class StudentAnswerAdmin(admin.ModelAdmin):
@@ -45,14 +39,10 @@ class StudentAnswerAdmin(admin.ModelAdmin):
         "bloom_weight",
         "normalized_weight",
         "weighted_score",
-        #"is_correct",
         "submitted_at",
     )
 
-    list_filter = (
-        "test",
-        #"is_correct",
-    )
+    list_filter = ("test",)
 
     def bloom_weight(self, obj):
         return BLOOM_WEIGHTS.get(obj.question.blooms_level, 1)

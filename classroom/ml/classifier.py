@@ -16,16 +16,6 @@ LABEL_TO_CHOICE = {
     "Create": "CREATE",
 }
 
-BLOOM_WEIGHTS = {
-    "Remember": 1,
-    "Understand": 2,
-    "Apply": 3,
-    "Analyze": 4,
-    "Evaluate": 5,
-    "Create": 6,
-}
-
-
 class BloomClassifier:
     """
     Loads the fine-tuned BERT model once and reuses it for every prediction.
@@ -44,8 +34,6 @@ class BloomClassifier:
         with open(f"{self.model_path}/label_mapping.json", "r") as f:
             self.mapping = json.load(f)
             self.id_to_label = self.mapping["id_to_label"]
-
-        self.bloom_weights = BLOOM_WEIGHTS
 
     def bloom_score(self, question):
         inputs = self.bert_tokenizer(
@@ -73,5 +61,5 @@ def classify_blooms(question_text: str) -> str:
     Returns one of: REMEMBER, UNDERSTAND, APPLY, ANALYZE, EVALUATE, CREATE
     (matches models.BloomsLevel choice codes).
     """
-    label, confidence = get_classifier().bloom_score(question_text)
+    label, _confidence = get_classifier().bloom_score(question_text)
     return LABEL_TO_CHOICE.get(label, "REMEMBER")

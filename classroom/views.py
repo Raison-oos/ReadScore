@@ -1,13 +1,12 @@
-from .ml.classifier import classify_blooms
-from .ml.answer_scorer import get_scorer
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Test, Question, StudentAnswer, TestResult, generate_test_code, BloomsLevel
-from .forms import TestForm, QuestionFormSet, TestCodeForm
-from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import QuestionFormSet, TestCodeForm, TestForm
+from .ml.answer_scorer import get_scorer
+from .ml.classifier import classify_blooms
+from .models import BLOOM_WEIGHTS, StudentAnswer, Test, TestResult, generate_test_code
 
 
 @login_required
@@ -22,12 +21,8 @@ def classroom_view(request):
             return redirect("classroom:take_test", test_code=form.cleaned_data["test_code"])
     else:
         form = TestCodeForm()
-    # CHANGE: Added 'tests' to context so the student classroom template can show
-    # a card-grid of tests the student has already participated in. Previously only
-    # 'form' was passed, so the card-grid view was never rendered.
-    # We derive the list from StudentAnswer (the student's existing submissions).
-    # FIX: order_by on a related field combined with distinct() raises a DB error
-    # (the sort column must be in the SELECT list). Use the Test's own created_at instead.
+    # Sorting by the Test's own created_at (not a related field) so it can
+    # combine with distinct() without Django needing it in the SELECT list.
     tests = (
         Test.objects
         .filter(student_answers__student=request.user)
@@ -80,7 +75,6 @@ def dashboard_view(request):
     }
     return render(request, "classroom/teacher_dashboard.html", context)
 
-#delete button
 @login_required
 def delete_test(request, test_code):
     test = get_object_or_404(Test, test_code=test_code, created_by=request.user)
@@ -105,7 +99,6 @@ def passage_intro(request, test_code):
     return render(request, "classroom/passage_intro.html", {"test": test})
 
 
-#student answer
 @login_required
 def take_test(request, test_code):
     test = get_object_or_404(Test, test_code=test_code)
@@ -136,15 +129,6 @@ def take_test(request, test_code):
         with transaction.atomic():
             scorer = get_scorer()
 
-            BLOOM_WEIGHTS = {
-            BloomsLevel.REMEMBERING: 1,
-            BloomsLevel.UNDERSTANDING: 2,
-            BloomsLevel.APPLYING: 3,
-            BloomsLevel.ANALYZING: 4,
-            BloomsLevel.EVALUATING: 5,
-            BloomsLevel.CREATING: 6,
-            }
-
             question_scores = []
             bloom_weights = []
 
@@ -159,8 +143,6 @@ def take_test(request, test_code):
                 )
 
                 question_scores.append(result)
-
-                # CHANGE THIS LINE TO MATCH YOUR MODEL
                 bloom_weights.append(BLOOM_WEIGHTS[question.blooms_level])
 
                 StudentAnswer.objects.update_or_create(
@@ -170,7 +152,6 @@ def take_test(request, test_code):
                         "test": test,
                         "answer_text": answer_text,
                         "bert_score": result["bert_score"],
-                        #"is_correct": result["is_correct"],
                     },
                 )
 
@@ -199,6 +180,7 @@ def take_test(request, test_code):
         "test": test,
         "questions": questions,
     })
+
 
 @login_required
 def student_result(request, test_code):

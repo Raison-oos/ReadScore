@@ -10,25 +10,6 @@ def generate_test_code():
         if not Test.objects.filter(test_code=code).exists():
             return code
 
-@property
-def status(self):
-    """
-    missing    = no questions added yet
-    unfinished = has questions, but not all have at least one submitted answer
-    finished   = every question has at least one submitted student answer
-    """
-    total_questions = self.questions.count()
-    if total_questions == 0:
-        return "missing"
-
-    answered_question_ids = set(
-        self.student_answers.values_list("question_id", flat=True).distinct()
-    )
-    if len(answered_question_ids) >= total_questions:
-        return "finished"
-    return "unfinished"
-
-
 class BloomsLevel(models.TextChoices):
     REMEMBERING = "REMEMBER", "Remembering"
     UNDERSTANDING = "UNDERSTAND", "Understanding"
@@ -36,6 +17,16 @@ class BloomsLevel(models.TextChoices):
     ANALYZING = "ANALYZE", "Analyzing"
     EVALUATING = "EVALUATE", "Evaluating"
     CREATING = "CREATE", "Creating"
+
+
+BLOOM_WEIGHTS = {
+    BloomsLevel.REMEMBERING: 1,
+    BloomsLevel.UNDERSTANDING: 2,
+    BloomsLevel.APPLYING: 3,
+    BloomsLevel.ANALYZING: 4,
+    BloomsLevel.EVALUATING: 5,
+    BloomsLevel.CREATING: 6,
+}
 
 
 class Test(models.Model):
@@ -67,6 +58,24 @@ class Test(models.Model):
             raise ValidationError({"passage": "Passage cannot be empty."})
         if self.passage_timer and not self.separate_page:
             raise ValidationError({"passage_timer": "Passage timer requires Separate page to be enabled."})
+
+    @property
+    def status(self):
+        """
+        missing    = no questions added yet
+        unfinished = has questions, but not all have at least one submitted answer
+        finished   = every question has at least one submitted student answer
+        """
+        total_questions = self.questions.count()
+        if total_questions == 0:
+            return "missing"
+
+        answered_question_ids = set(
+            self.student_answers.values_list("question_id", flat=True).distinct()
+        )
+        if len(answered_question_ids) >= total_questions:
+            return "finished"
+        return "unfinished"
 
     def __str__(self):
         return self.test_code

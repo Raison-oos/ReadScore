@@ -21,12 +21,24 @@ def has_internet(host="huggingface.co", port=443, timeout=2.0) -> bool:
         return False
 
 
+# Management commands that never touch the ML models — no reason to pay
+# the model-loading cost for these.
+NON_SERVING_COMMANDS = {
+    "makemigrations", "migrate", "check", "shell", "test",
+    "collectstatic", "createsuperuser", "dbshell", "showmigrations",
+}
+
+
 class ClassroomConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "classroom"
 
     def ready(self):
-        if "runserver" in sys.argv and os.environ.get("RUN_MAIN") != "true":
+        command = sys.argv[1] if len(sys.argv) > 1 else None
+
+        if command in NON_SERVING_COMMANDS:
+            return
+        if command == "runserver" and os.environ.get("RUN_MAIN") != "true":
             return
 
         # Decide ONCE, before transformers/huggingface_hub is imported
