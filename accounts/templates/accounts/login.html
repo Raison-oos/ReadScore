@@ -52,17 +52,43 @@
 
     <p class="login-divider">Use your email to log in</p>
 
-    {% if messages %}
-      <div class="login-messages">
-        {% for message in messages %}
-          <p>{{ message }}</p>
-        {% endfor %}
+    {% if form.errors %}
+    <div class="alert-overlay" id="alertOverlay">
+      <div class="alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
+        <div class="alert-modal-icon">!</div>
+        <h3 class="alert-modal-title" id="alertTitle">We couldn't log you in</h3>
+        <ul class="alert-modal-list">
+          {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+          {% for field in form %}{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}{% endfor %}
+        </ul>
+        <button type="button" class="alert-modal-btn" id="alertOverlayClose">Got it</button>
       </div>
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    <div class="toast-stack" id="toastStack">
+      {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}">
+          <span>{{ message }}</span>
+          <button type="button" class="toast-close" aria-label="Dismiss">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     <form method="post" class="login-form">
       {% csrf_token %}
-      {{ form.as_p }}
+
+      <p class="{% if form.username.errors %}has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+      </p>
+
+      <p class="{% if form.password.errors %}has-error{% endif %}">
+        <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+        {{ form.password }}
+      </p>
 
       <div class="login-extra-row">
         <label class="login-remember">
@@ -119,5 +145,7 @@
       </div>
     </footer>
   </div>
+
+  <script src="{% static 'js/auth_alert.js' %}"></script>
 </body>
 </html>

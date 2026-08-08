@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./venv/Scripts/python.exe -c ' *)",
+      "Bash(./venv/Scripts/python.exe manage.py makemigrations accounts)",
+      "Bash(./venv/Scripts/python.exe manage.py migrate accounts)",
+      "Bash(./venv/Scripts/python.exe manage.py shell -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/accounts/login/)"
+    ]
+  }
+}

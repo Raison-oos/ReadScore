@@ -50,12 +50,29 @@
   <div class="login-card">
     <h2>Register</h2>
 
-    {% if messages %}
-      <div class="login-messages">
-        {% for message in messages %}
-          <p>{{ message }}</p>
-        {% endfor %}
+    {% if form.errors %}
+    <div class="alert-overlay" id="alertOverlay">
+      <div class="alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
+        <div class="alert-modal-icon">!</div>
+        <h3 class="alert-modal-title" id="alertTitle">We couldn't create your account</h3>
+        <ul class="alert-modal-list">
+          {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+          {% for field in form %}{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}{% endfor %}
+        </ul>
+        <button type="button" class="alert-modal-btn" id="alertOverlayClose">Got it</button>
       </div>
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    <div class="toast-stack" id="toastStack">
+      {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}">
+          <span>{{ message }}</span>
+          <button type="button" class="toast-close" aria-label="Dismiss">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     <form method="post" class="login-form">
@@ -85,19 +102,17 @@
         })();
       </script>
 
-      <p>
+      <p class="{% if form.first_name.errors %}has-error{% endif %}">
         <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}:</label>
         {{ form.first_name }}
-        {{ form.first_name.errors }}
       </p>
 
-      <p>
+      <p class="{% if form.last_name.errors %}has-error{% endif %}">
         <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}:</label>
         {{ form.last_name }}
-        {{ form.last_name.errors }}
       </p>
 
-      <p>
+      <p class="{% if form.username.errors %}has-error{% endif %}">
         <div class="field-label-row">
           <label for="{{ form.username.id_for_label }}">{{ form.username.label }}:</label>
           <span class="field-tooltip">
@@ -106,16 +121,14 @@
           </span>
         </div>
         {{ form.username }}
-        {{ form.username.errors }}
       </p>
 
-      <p>
+      <p class="{% if form.email.errors %}has-error{% endif %}">
         <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
         {{ form.email }}
-        {{ form.email.errors }}
       </p>
 
-      <p>
+      <p class="{% if form.password1.errors %}has-error{% endif %}">
         <div class="field-label-row">
           <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}:</label>
           <span class="field-tooltip">
@@ -124,10 +137,9 @@
           </span>
         </div>
         {{ form.password1 }}
-        {{ form.password1.errors }}
       </p>
 
-      <p>
+      <p class="{% if form.password2.errors %}has-error{% endif %}">
         <div class="field-label-row">
           <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}:</label>
           <span class="field-tooltip">
@@ -136,7 +148,6 @@
           </span>
         </div>
         {{ form.password2 }}
-        {{ form.password2.errors }}
       </p>
 
       <button type="submit" class="login-submit-btn">Register</button>
@@ -145,7 +156,7 @@
     <p class="login-register-row">Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
   </div>
 </div>
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/auth_alert.js' %}"></script>
 
     </main>
     

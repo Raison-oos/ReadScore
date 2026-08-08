@@ -40,6 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     row.style.animationDelay = (0.15 + i * 0.07) + 's';
   });
 
+  /* ===== Scoring criteria explainer toggle ===== */
+  const criteriaToggle = document.getElementById('criteriaToggle');
+  const criteriaBody = document.getElementById('criteriaBody');
+  if (criteriaToggle && criteriaBody) {
+    criteriaToggle.addEventListener('click', () => {
+      const isOpen = criteriaToggle.classList.toggle('open');
+      criteriaToggle.setAttribute('aria-expanded', String(isOpen));
+      criteriaBody.style.maxHeight = isOpen ? criteriaBody.scrollHeight + 'px' : '0px';
+    });
+  }
+
   /* ===== Expand / collapse each question's answer ===== */
   document.querySelectorAll('.expand-btn').forEach(btn => {
     btn.addEventListener('click', () => {

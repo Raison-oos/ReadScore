@@ -339,18 +339,142 @@ footer.site-footer {
   margin: 28px 0 24px;
 }
 
-.login-messages {
-  margin-bottom: 16px;
+/* ===== Flash-message toasts (login/register) =====
+   Separate from the alert-modal on purpose: the modal is reserved for
+   real failures on *this* submission (form.errors). Success/info/warning
+   messages carried over from another view (e.g. "logged out",
+   "account created") are not failures and shouldn't look like one. */
+.toast-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 320px;
 }
 
-.login-messages p {
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  animation: toastSlideIn 0.25s ease;
+}
+
+.toast-hide {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  padding: 0;
+}
+.toast-close:hover { opacity: 1; }
+
+.toast-success { background: #ecfdf3; color: #046c4e; }
+.toast-info    { background: #eff6ff; color: #1d4ed8; }
+.toast-warning { background: #fffbeb; color: #92400e; }
+.toast-error   { background: #fef2f2; color: #b91c1c; }
+.toast-debug   { background: #f3f4f6; color: #374151; }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== Error popup (login/register) ===== */
+.alert-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: alertFadeIn 0.2s ease;
+}
+
+.alert-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 16px;
+  padding: 28px 26px 24px;
+  text-align: left;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: alertPopIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.alert-modal-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   background: #fef2f2;
+  color: #dc2626;
+  font-size: 20px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.alert-modal-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+
+.alert-modal-list {
+  margin: 0 0 20px;
+  padding-left: 18px;
   color: #b91c1c;
   font-size: 13.5px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin: 0 0 8px;
-  text-align: left;
+  line-height: 1.6;
+}
+
+.alert-modal-list li { margin-bottom: 4px; }
+.alert-modal-list li:last-child { margin-bottom: 0; }
+
+.alert-modal-btn {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-blue);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 700;
+  padding: 12px 0;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.alert-modal-btn:hover { background: var(--color-blue-hover); }
+
+@keyframes alertFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes alertPopIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Style the Django form.as_p output to match the design */
@@ -360,6 +484,10 @@ footer.site-footer {
 
 .login-form p {
   margin: 0 0 18px;
+}
+
+.login-form p.has-error input {
+  border-color: #dc2626;
 }
 
 .login-form label {

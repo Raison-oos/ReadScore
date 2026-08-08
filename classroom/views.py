@@ -182,6 +182,12 @@ def take_test(request, test_code):
     })
 
 
+# A semantic match at or above this threshold is shown as "Correct" on the
+# result page. It's a display-only cutoff — the actual score is the
+# continuous BERTScore, not this pass/fail line.
+CORRECT_THRESHOLD = 0.6
+
+
 @login_required
 def student_result(request, test_code):
     test = get_object_or_404(Test, test_code=test_code)
@@ -193,9 +199,26 @@ def student_result(request, test_code):
     )
     result = TestResult.objects.filter(student=request.user, test=test).first()
 
+    total_weight = sum(BLOOM_WEIGHTS.get(a.question.blooms_level, 1) for a in answers) or 1
+
+    breakdown = []
+    for answer in answers:
+        bloom_weight = BLOOM_WEIGHTS.get(answer.question.blooms_level, 1)
+        normalized_weight = bloom_weight / total_weight
+        match = answer.bert_score or 0
+        breakdown.append({
+            "answer": answer,
+            "bloom_weight": bloom_weight,
+            "weight_share": round(normalized_weight * 100, 1),
+            "match_percent": round(match * 100, 1),
+            "contribution": round(match * normalized_weight * 100, 1),
+            "is_correct": match >= CORRECT_THRESHOLD,
+        })
+
     return render(request, "classroom/student_result.html", {
         "test": test,
-        "answers": answers,
+        "breakdown": breakdown,
         "final_score": result.final_score if result else 0,
         "phil_iri_level": result.get_phil_iri_level_display() if result else "—",
+        "CORRECT_THRESHOLD_PERCENT": round(CORRECT_THRESHOLD * 100),
     })

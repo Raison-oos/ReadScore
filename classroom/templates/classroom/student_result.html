@@ -84,19 +84,49 @@
               <span class="score-percent"><span id="percentNumber">0</span>%</span>
               <span class="score-caption">Total Score Percentage</span>
             </div>
-          </section>         
+          </section>
+
+          <!-- Scoring criteria explainer -->
+          <section class="criteria-card">
+            <button class="criteria-toggle" type="button" id="criteriaToggle" aria-expanded="false">
+              <span class="criteria-toggle-label">How was this score calculated?</span>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="criteria-body" id="criteriaBody">
+              <ul class="criteria-list">
+                <li>
+                  <strong>Semantic match (BERTScore).</strong> Each answer is compared to the teacher's
+                  answer key for meaning, not exact wording — a paraphrased but correct answer still scores well.
+                </li>
+                <li>
+                  <strong>Bloom's Taxonomy weight.</strong> Questions that ask you to Analyze, Evaluate, or
+                  Create count for more of your final score than simpler Remember/Understand questions.
+                </li>
+                <li>
+                  <strong>Final score.</strong> For every question: <code>match % × (question's weight ÷ total weight)</code>.
+                  Your final score is the sum of every question's contribution.
+                </li>
+                <li>
+                  The ✓ / ✗ mark below is a guide, shown when the semantic match is
+                  {{ CORRECT_THRESHOLD_PERCENT }}% or higher — your real score is the match percentage itself.
+                </li>
+              </ul>
+            </div>
+          </section>
 
           <!-- Question list -->
           <section class="question-panel">
             <div class="question-scroll" id="questionScroll">
 
-              {% for answer in answers %}
-                <div class="question-row" data-correct="{{ answer.is_correct|yesno:'true,false' }}">
+              {% for item in breakdown %}
+                <div class="question-row" data-correct="{{ item.is_correct|yesno:'true,false' }}">
                   <div class="q-main">
                     <span class="q-number">{{ forloop.counter }}</span>
-                    <span class="q-text">{{ answer.question.question }}</span>
-                    <span class="bloom-pill">{{ answer.question.get_blooms_level_display }}</span>
-                    {% if answer.is_correct %}
+                    <span class="q-text">{{ item.answer.question.question }}</span>
+                    <span class="bloom-pill">{{ item.answer.question.get_blooms_level_display }}</span>
+                    {% if item.is_correct %}
                       <span class="result-icon correct">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
@@ -120,7 +150,26 @@
                   <div class="q-answer">
                     <div class="q-answer-inner">
                       <span class="q-answer-label">Your Answer</span>
-                      <p>{{ answer.answer_text }}</p>
+                      <p>{{ item.answer.answer_text }}</p>
+
+                      <div class="score-breakdown">
+                        <div class="breakdown-stat">
+                          <span class="breakdown-value">{{ item.match_percent }}%</span>
+                          <span class="breakdown-label">Semantic Match</span>
+                        </div>
+                        <div class="breakdown-stat">
+                          <span class="breakdown-value">{{ item.answer.question.get_blooms_level_display }} (×{{ item.bloom_weight }})</span>
+                          <span class="breakdown-label">Bloom's Weight</span>
+                        </div>
+                        <div class="breakdown-stat">
+                          <span class="breakdown-value">{{ item.weight_share }}%</span>
+                          <span class="breakdown-label">Share of Test</span>
+                        </div>
+                        <div class="breakdown-stat">
+                          <span class="breakdown-value">{{ item.contribution }} pts</span>
+                          <span class="breakdown-label">Contributed to Final Score</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
