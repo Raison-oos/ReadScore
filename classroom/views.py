@@ -22,7 +22,20 @@ def classroom_view(request):
             return redirect("classroom:take_test", test_code=form.cleaned_data["test_code"])
     else:
         form = TestCodeForm()
-    return render(request, "classroom/student_classroom.html", {"form": form})
+    # CHANGE: Added 'tests' to context so the student classroom template can show
+    # a card-grid of tests the student has already participated in. Previously only
+    # 'form' was passed, so the card-grid view was never rendered.
+    # We derive the list from StudentAnswer (the student's existing submissions).
+    # FIX: order_by on a related field combined with distinct() raises a DB error
+    # (the sort column must be in the SELECT list). Use the Test's own created_at instead.
+    tests = (
+        Test.objects
+        .filter(student_answers__student=request.user)
+        .distinct()
+        .order_by("-created_at")
+    )
+    return render(request, "classroom/student_classroom.html", {"form": form, "tests": tests})
+
 
 @login_required
 def dashboard_view(request):

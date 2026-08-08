@@ -9,14 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
-  
-
 </head>
 <body>
   <div class="site-wrapper">
-    
 
-    
     <header class="site-header">
       <div class="header-inner">
         <div class="logo">
@@ -24,140 +20,234 @@
           <span class="logo-sub">for Comprehension Scoring</span>
         </div>
         <nav class="main-nav">
-          <a href="{% url 'home' %}" class="">Home</a>
-          <a href="{% url 'about' %}" class="">About</a>
-          <a href="{% url 'faq' %}" class="">FAQ</a>
-          <a href="{% url 'contact' %}" class="">Contact</a>
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'about' %}">About</a>
+          <a href="{% url 'faq' %}">FAQ</a>
+          <a href="{% url 'contact' %}">Contact</a>
         </nav>
         <div class="header-actions">
-        {% if user.is_authenticated %}
-        <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
-        {% else %}
-          <a href="{% url 'accounts:register' %}" class="signin-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-            Sign In
-          </a>
-          <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+          {% else %}
+            <a href="{% url 'accounts:register' %}" class="signin-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              Sign In
+            </a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
-      
     </header>
 
     <main>
-      
-        <div class="page-head">
-            <span class="eyebrow">Passage Builder</span>
-            <h1>Create Question &amp; Answer</h1>
-            <p>Pair this passage with comprehension questions and answer keys. READScore uses these to score student responses against Phil-IRI reading levels and Bloom's Taxonomy.</p>
+
+      <div class="page-head">
+        <span class="eyebrow">Passage Builder</span>
+        <h1>Create Question &amp; Answer</h1>
+        <p>Pair this passage with comprehension questions and answer keys. READScore uses these to score student responses against Phil-IRI reading levels and Bloom's Taxonomy.</p>
+      </div>
+
+      <div class="test-code-banner">
+        Test Code: <strong id="testCode">{{ pending_test_code }}</strong>
+      </div>
+
+      {% if messages %}
+        <div class="page-messages">
+          {% for message in messages %}
+            <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- The form IS the workspace grid — avoids the form wrapper breaking the 3-column grid -->
+      <form method="post" id="builderForm" class="workspace" novalidate>
+        {% csrf_token %}
+
+        <!-- ── Column 1: Passage panel ── -->
+        <div class="panel passage-panel">
+          <div class="passage-header">
+            <span class="label">Reading Passage</span>
+            <h2>Passage</h2>
+          </div>
+          <div class="passage-body" id="passageBody">
+            <span class="suggested-tag" id="suggestedTag">Suggested passage</span>
+            {{ test_form.passage }}
+            {% if test_form.passage.errors %}
+              <div class="field-error">{{ test_form.passage.errors.0 }}</div>
+            {% endif %}
+          </div>
         </div>
 
-        <div class="test-code-banner">
-            Test Code: <strong id="testCode">{{ pending_test_code }}</strong>
-        </div>
+        <!-- ── Column 2: Question & Answer panel ── -->
+        <div class="panel qa-panel">
+          <div class="qa-header">
+            <h2>Question and Answer</h2>
+            <button class="btn-create" type="submit">Create</button>
+          </div>
 
-        {% if messages %}
-            <div class="page-messages">
-            {% for message in messages %}
-                <div class="msg msg-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
+          {{ formset.management_form }}
+          {% if formset.non_form_errors %}
+            <div class="field-error">{{ formset.non_form_errors.0 }}</div>
+          {% endif %}
 
-        <form method="post" id="builderForm" novalidate>
-            {% csrf_token %}
+          <div class="qa-list" id="qaList">
+            {% for qform in formset %}
+              <div class="qa-card" data-form-index="{{ forloop.counter0 }}">
+                <span class="qa-card-index">{{ forloop.counter }}</span>
 
-            <div class="workspace">
+                {% if qform.instance.pk %}{{ qform.DELETE }}{% endif %}
+                {% for hidden in qform.hidden_fields %}{{ hidden }}{% endfor %}
 
-                <!-- Passage panel -->
-                <div class="panel passage-panel">
-                    <div class="passage-header">
-                        <span class="label">Reading Passage</span>
-                        <h2>Passage</h2>
-                    </div>
-                    <div class="passage-body" id="passageBody">
-                        <span class="suggested-tag" id="suggestedTag">Suggested passage</span>
-
-                        {{ test_form.passage }}
-                        {% if test_form.passage.errors %}
-                            <div class="field-error">{{ test_form.passage.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Question & Answer panel -->
-                <div class="panel qa-panel">
-                    <div class="qa-header">
-                        <h2>Question and Answer</h2>
-                        <button class="btn-create" type="submit">Create</button>
-                    </div>
-
-                    {{ formset.management_form }}
-
-                    {% if formset.non_form_errors %}
-                        <div class="field-error">{{ formset.non_form_errors.0 }}</div>
-                    {% endif %}
-
-                    <div class="qa-list" id="qaList">
-                        {% for qform in formset %}
-                            <div class="qa-card" data-form-index="{{ forloop.counter0 }}">
-                                <span class="qa-card-index">{{ forloop.counter }}</span>
-
-                                {% if qform.instance.pk %}{{ qform.DELETE }}{% endif %}
-                                {% for hidden in qform.hidden_fields %}{{ hidden }}{% endfor %}
-
-                                <span class="qa-field-label">Question</span>
-                                {{ qform.question }}
-                                {% if qform.question.errors %}
-                                    <div class="field-error">{{ qform.question.errors.0 }}</div>
-                                {% endif %}
-
-                                <span class="qa-field-label">Answer Key</span>
-                                {{ qform.answer_key }}
-                                {% if qform.answer_key.errors %}
-                                    <div class="field-error">{{ qform.answer_key.errors.0 }}</div>
-                                {% endif %}
-
-                                <div class="qa-card-footer">
-                                    <button class="btn-delete" type="button">Delete</button>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="qa-footer">
-                        <button class="btn-add" type="button" id="addQuestionBtn">+ Add Question</button>
-                    </div>
-                </div>
-
-            </div>
-        </form>
-
-        <!-- Hidden template used by JS to clone a brand-new blank question card.
-             Django's formset.empty_form renders field names/ids with the
-             literal string __prefix__ standing in for the numeric index;
-             the JS below swaps __prefix__ for the next real index. -->
-        <template id="emptyFormTemplate">
-            <div class="qa-card" data-form-index="__prefix__">
-                <span class="qa-card-index"></span>
-                {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
                 <span class="qa-field-label">Question</span>
-                {{ formset.empty_form.question }}
-                <span class="qa-field-label">Answer Key</span>
-                {{ formset.empty_form.answer_key }}
-                <div class="qa-card-footer">
-                    <button class="btn-delete" type="button">Delete</button>
+                {{ qform.question }}
+                {% if qform.question.errors %}
+                  <div class="field-error">{{ qform.question.errors.0 }}</div>
+                {% endif %}
+
+                <!-- Collapsible answer key -->
+                <div class="ak-section">
+                  <button class="ak-toggle" type="button" aria-expanded="false">
+                    <span class="ak-label">Answer key</span>
+                    <svg class="ak-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="4 6 8 10 12 6"/>
+                    </svg>
+                  </button>
+                  <div class="ak-body">
+                    {{ qform.answer_key }}
+                    {% if qform.answer_key.errors %}
+                      <div class="field-error">{{ qform.answer_key.errors.0 }}</div>
+                    {% endif %}
+                  </div>
                 </div>
+
+                <div class="qa-card-footer">
+                  <button class="btn-delete" type="button">Delete</button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="qa-footer">
+            <button class="btn-add" type="button" id="addQuestionBtn">+ Add Question</button>
+          </div>
+        </div>
+
+        <!-- ── Column 3: Settings panel ── -->
+        <aside class="settings-panel">
+          <div class="settings-card">
+
+            <div class="settings-header">
+              <span class="settings-title">Passage</span>
+              <button class="settings-collapse-btn" type="button" id="settingsCollapseBtn" aria-expanded="true" aria-label="Collapse settings">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="4 6 8 10 12 6"/>
+                </svg>
+              </button>
             </div>
-        </template>
 
-        <script src="{% static 'js/teacher_dashboard.js' %}"></script>
+            <div class="settings-body" id="settingsBody">
 
+              <!-- Separate page -->
+              <div class="settings-row">
+                <span class="settings-row-label">
+                  Separate page
+                  <span class="tip-wrap">
+                    <span class="tip-icon">?</span>
+                    <span class="tip-bubble">Shows the passage on its own page before questions begin, so students can read without distraction.</span>
+                  </span>
+                </span>
+                <label class="sw">
+                  <input type="checkbox" name="separate_page" id="toggleSeparatePage">
+                  <span class="sw-track"><span class="sw-thumb"></span></span>
+                </label>
+              </div>
+
+              <!-- Shown in Test -->
+              <div class="settings-row">
+                <span class="settings-row-label">
+                  Shown in Test
+                  <span class="tip-wrap">
+                    <span class="tip-icon">?</span>
+                    <span class="tip-bubble">Keeps the passage visible alongside the questions while students answer.</span>
+                  </span>
+                </span>
+                <label class="sw">
+                  <input type="checkbox" name="shown_in_test" id="toggleShownInTest">
+                  <span class="sw-track"><span class="sw-thumb"></span></span>
+                </label>
+              </div>
+
+              <!-- Passage timer -->
+              <div class="settings-row">
+                <span class="settings-row-label">
+                  Passage timer
+                  <span class="tip-wrap">
+                    <span class="tip-icon">?</span>
+                    <span class="tip-bubble">Sets a countdown for how long students can read before questions appear. Requires "Separate page" to be on.</span>
+                  </span>
+                </span>
+                <label class="sw">
+                  <input type="checkbox" name="passage_timer" id="togglePassageTimer">
+                  <span class="sw-track"><span class="sw-thumb"></span></span>
+                </label>
+              </div>
+              <div class="timer-row" id="timerRow">
+                <input class="timer-input" type="text" name="passage_timer_value" id="passageTimerValue" placeholder="hh:mm:ss" maxlength="8" autocomplete="off">
+              </div>
+
+              <!-- Grammar Checker -->
+              <div class="settings-row">
+                <span class="settings-row-label">
+                  Grammar Checker
+                  <span class="tip-wrap">
+                    <span class="tip-icon">?</span>
+                    <span class="tip-bubble">Checks student answers for grammar errors before scoring, giving more accurate results.</span>
+                  </span>
+                </span>
+                <label class="sw">
+                  <input type="checkbox" name="grammar_checker" id="toggleGrammarChecker">
+                  <span class="sw-track"><span class="sw-thumb"></span></span>
+                </label>
+              </div>
+
+              <div class="settings-save-row">
+                <button class="btn-settings-save" type="button">Save</button>
+              </div>
+
+            </div><!-- /.settings-body -->
+          </div><!-- /.settings-card -->
+        </aside>
+
+      </form><!-- /.workspace -->
+
+      <!-- Template for JS-cloned blank question cards -->
+      <template id="emptyFormTemplate">
+        <div class="qa-card" data-form-index="__prefix__">
+          <span class="qa-card-index"></span>
+          {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+          <span class="qa-field-label">Question</span>
+          {{ formset.empty_form.question }}
+          <div class="ak-section">
+            <button class="ak-toggle" type="button" aria-expanded="false">
+              <span class="ak-label">Answer key</span>
+              <svg class="ak-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 6 8 10 12 6"/>
+              </svg>
+            </button>
+            <div class="ak-body">
+              {{ formset.empty_form.answer_key }}
+            </div>
+          </div>
+          <div class="qa-card-footer">
+            <button class="btn-delete" type="button">Delete</button>
+          </div>
+        </div>
+      </template>
+
+      <script src="{% static 'js/teacher_dashboard.js' %}"></script>
 
     </main>
-    
 
-    
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="features-inner footer-features">
@@ -188,6 +278,7 @@
         <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
       </div>
     </footer>
-  </div>
+
+  </div><!-- /.site-wrapper -->
 </body>
 </html>

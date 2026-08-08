@@ -342,9 +342,9 @@ body{
 
 /* ===== Page head ===== */
 .page-head{
-  max-width:1440px;
-  margin:0 auto;
-  padding:56px 64px 0;
+  max-width:none;
+  margin:0;
+  padding:28px 20px 0;
 }
 .eyebrow{
   display:inline-flex; align-items:center; gap:8px;
@@ -358,11 +358,11 @@ body{
 
 /* ===== Workspace ===== */
 .workspace{
-  max-width:1440px;
-  margin:0 auto;
-  padding:0 64px 88px;
+  max-width:none;
+  margin:0;
+  padding:16px 20px 32px;
   display:flex;
-  gap:40px;
+  gap:20px;
   align-items:flex-start;
 }
 
@@ -375,8 +375,8 @@ body{
 
 /* ===== Passage panel (collapsible) ===== */
 .passage-panel{
-  flex:0 0 400px;
-  height:800px;
+  flex:0 0 480px;
+  height:calc(100vh - 140px);
   display:flex;
   flex-direction:column;
   transition:flex-basis 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1);
@@ -487,7 +487,7 @@ body{
 /* ===== Answer panel ===== */
 .answer-panel{
   flex:1;
-  height:800px;
+  height:calc(100vh - 140px);
   display:flex;
   flex-direction:column;
   min-width:0;
@@ -629,49 +629,84 @@ body{
 }
 .answer-input::placeholder{ color:#9AA1AC; }
 
+/* send-icon: now a submit button pill in the question header, beside Bloom's badge */
 .send-icon{
-  position:absolute;
-  right:22px;
-  bottom:20px;
-  display:flex;
+  appearance:none;
+  display:inline-flex;
   align-items:center;
   justify-content:center;
-  color:var(--ink-soft);
-  opacity:0.32;
-  transition:opacity 0.25s ease, color 0.25s ease, transform 0.25s ease;
-  pointer-events:none;
+  gap:5px;
+  background:var(--blue);
+  color:#fff;
+  border:none;
+  border-radius:20px;
+  padding:5px 12px 5px 9px;
+  font-size:11px;
+  font-weight:600;
+  font-family:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  box-shadow:0 2px 8px rgba(36,82,224,0.20);
+  flex-shrink:0;
 }
-.send-icon.active{
-  opacity:1;
-  color:var(--blue);
-  transform:translateX(2px) translateY(-2px);
+.send-icon::after{
+  content:"Submit";
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+}
+.send-icon:hover{
+  background:var(--blue-deep);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(36,82,224,0.28);
+}
+.send-icon:active{ transform:translateY(0); box-shadow:none; }
+
+/* Make the answer form a flex column so qa-scroll fills remaining height and scrolls */
+#answerForm{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  overflow:hidden;
 }
 
+/* Answer footer — sticky at the bottom of the answer panel so Submit is always visible */
 .answer-footer{
-  padding:28px 36px;
+  padding:16px 22px;
   border-top:1px solid var(--line-soft);
   background:var(--panel);
   display:flex;
   justify-content:flex-end;
+  /* Stick to the bottom of the panel without being inside the scroll */
+  flex-shrink:0;
 }
 .btn-submit{
   background:var(--blue);
   color:#fff;
   border:none;
-  font-size:14px;
-  font-weight:600;
-  padding:15px 40px;
-  border-radius:9px;
+  font-size:14.5px;
+  font-weight:700;
+  padding:14px 48px;
+  border-radius:10px;
   cursor:pointer;
-  transition:background 0.15s ease, transform 0.1s ease;
+  font-family:inherit;
+  letter-spacing:0.01em;
+  transition:background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  box-shadow:0 4px 14px rgba(36,82,224,0.22);
 }
-.btn-submit:hover{ background:var(--blue-deep); }
-.btn-submit:active{ transform:translateY(1px); }
+.btn-submit:hover{
+  background:var(--blue-deep);
+  box-shadow:0 6px 18px rgba(36,82,224,0.3);
+}
+.btn-submit:active{ transform:translateY(1px); box-shadow:none; }
 
 @media (max-width:900px){
-  .workspace{ flex-direction:column; }
-  .passage-panel{ flex-basis:auto; width:100%; height:auto; max-height:340px; }
+  .workspace{ flex-direction:column; padding:12px 12px 32px; }
+  .passage-panel{ flex-basis:auto; width:100%; height:auto; max-height:320px; }
   .passage-panel.collapsed{ flex-basis:auto; width:100%; }
   .answer-panel{ width:100%; height:auto; }
-  .topbar, .page-head, .workspace{ padding-left:28px; padding-right:28px; }
+  .page-head{ padding:20px 12px 0; }
 }

@@ -4,13 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — READScore</title>
+  <title>Student Classroom — READScore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/student_classroom.css' %}">
-  
-
 </head>
 <body>
   <div class="site-wrapper">
@@ -21,41 +19,35 @@
           <span class="logo-sub">for Comprehension Scoring</span>
         </div>
         <nav class="main-nav">
-          <a href="{% url 'home' %}" class="">Home</a>
-          <a href="{% url 'about' %}" class="">About</a>
-          <a href="{% url 'faq' %}" class="">FAQ</a>
-          <a href="{% url 'contact' %}" class="">Contact</a>
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'about' %}">About</a>
+          <a href="{% url 'faq' %}">FAQ</a>
+          <a href="{% url 'contact' %}">Contact</a>
         </nav>
         <div class="header-actions">
-        {% if user.is_authenticated %}
-        <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
-        {% else %}
-          <a href="{% url 'accounts:register' %}" class="signin-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-            Sign In
-          </a>
-          <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+          {% else %}
+            <a href="{% url 'accounts:register' %}" class="signin-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+              Sign In
+            </a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% endif %}
         </div>
-        {% endif %}
       </div>
-      
     </header>
 
-    
-
-    
-    <!-- Ambient reading-themed background -->
+    <!-- Ambient background -->
     <div class="bg-scene" aria-hidden="true">
       <div class="blob blob-blue"></div>
       <div class="blob blob-gold"></div>
-
       <div class="text-lines lines-a">
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <div class="text-lines lines-b">
         <span></span><span></span><span></span><span></span>
       </div>
-
       <svg class="book-glyph book-a" viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 6C10 2 22 2 30 6V42C22 38 10 38 2 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
         <path d="M62 6C54 2 42 2 34 6V42C42 38 54 38 62 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
@@ -65,38 +57,121 @@
         <path d="M62 6C54 2 42 2 34 6V42C42 38 54 38 62 42V6Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
       </svg>
     </div>
+
     <main class="stage">
+
+      {% if tests %}
+      <!-- ══ CARD GRID VIEW (student has existing test sessions) ══ -->
+      <div class="sc-window" id="cardView">
+        <div class="sc-window-body">
+
+          <!-- Student identity row -->
+          <div class="sc-identity">
+            <div class="sc-avatar">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="12" cy="8" r="3.6"/>
+                <path d="M4.5 20C4.5 15.8 7.8 13.5 12 13.5C16.2 13.5 19.5 15.8 19.5 20" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="sc-identity-label">Student</span>
+          </div>
+
+          <!-- Test card grid -->
+          <div class="sc-grid">
+            {% for test in tests %}
+              <article class="sc-test-card" data-status="{{ test.status }}">
+                <div class="sc-card-top">
+                  <div class="sc-card-pattern" aria-hidden="true"></div>
+                  <div class="sc-card-top-text">
+                    <h3>{{ test.test_code }}</h3>
+                    <p class="sc-card-detail">{{ test.status|capfirst }}</p>
+                  </div>
+                  <span class="sc-status-dot sc-status-{{ test.status }}"></span>
+                </div>
+                <div class="sc-card-bottom">
+                  <span class="sc-card-label">
+                    {% if test.status == "finished" %}Completed
+                    {% else %}In progress{% endif %}
+                  </span>
+                  <div class="sc-card-actions">
+                    <a href="{% url 'classroom:take_test' test.test_code %}" class="sc-icon-btn sc-resume-btn" title="Resume test">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 3L19 12L5 21V3Z" fill="currentColor" stroke="none"/>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            {% endfor %}
+
+            <!-- Add / enter new test — dashed placeholder card -->
+            <button class="sc-add-card" id="addTestBtn" title="Enter a new test code" type="button">
+              <span class="sc-add-plus">+</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ CODE ENTRY PANEL (shown when student clicks the add card) ══ -->
+      <div class="sc-entry-overlay" id="entryOverlay">
+        <div class="role-card" id="roleCard">
+          <button class="sc-back-btn" id="backBtn" type="button" title="Back to my tests">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="avatar-circle">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4.5 20C4.5 15.8 7.8 13.5 12 13.5C16.2 13.5 19.5 15.8 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="role-label">Student</span>
+          <form method="post" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin:0;">
+            {% csrf_token %}
+            {{ form.test_code }}
+            {% if form.test_code.errors %}
+              <p class="error-message" style="color:var(--danger);font-size:13px;font-weight:500;margin:-4px 0 0 0;text-align:center;width:100%;">
+                {{ form.test_code.errors.0 }}
+              </p>
+            {% endif %}
+            <button class="glass-btn glass-btn-primary" type="submit">
+              <span>Enter</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- ══ NO TESTS YET: show only the code entry card ══ -->
       <div class="role-card" id="roleCard">
         <div class="avatar-circle">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
             <path d="M4.5 20C4.5 15.8 7.8 13.5 12 13.5C16.2 13.5 19.5 15.8 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
         </div>
-
         <span class="role-label">Student</span>
-
-        <!-- Form works directly with Django backend now -->
-        <form method="post" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; margin: 0;">
+        <form method="post" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin:0;">
           {% csrf_token %}
-          
           {{ form.test_code }}
-          
           {% if form.test_code.errors %}
-            <p class="error-message" style="color: var(--danger); font-size: 13px; font-weight: 500; margin: -4px 0 0 0; text-align: center; width: 100%;">
+            <p class="error-message" style="color:var(--danger);font-size:13px;font-weight:500;margin:-4px 0 0 0;text-align:center;width:100%;">
               {{ form.test_code.errors.0 }}
             </p>
           {% endif %}
-
-          <!-- Removed 'disabled' so it relies on standard submission/validation -->
           <button class="glass-btn glass-btn-primary" id="enterBtn" type="submit">
             <span>Enter</span>
           </button>
         </form>
       </div>
+      {% endif %}
+
     </main>
 
-  <script src="{% static 'js/student_classroom.js' %}"></script>
+    <script src="{% static 'js/student_classroom.js' %}"></script>
+
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="features-inner footer-features">
@@ -128,9 +203,6 @@
       </div>
     </footer>
 
-
-
-    
-  </div>
+  </div><!-- /.site-wrapper -->
 </body>
 </html>

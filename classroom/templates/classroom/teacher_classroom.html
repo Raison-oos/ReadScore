@@ -55,11 +55,7 @@
   <main class="stage">
     <div class="app-window">
 
-      <div class="window-chrome">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      </div>
-
-      <div class="window-body"></div>
+      <div class="window-body">
 
         {% if messages %}
           <div class="page-messages">
@@ -132,6 +128,10 @@
             <p>No tests yet. Create your first one below.</p>
           {% endfor %}
 
+          <a href="{% url 'classroom:dashboard' %}" class="add-test-card" title="Create a new test">
+            <span class="add-test-plus">+</span>
+          </a>
+
         </section>
 
         <div class="dash-footer">
@@ -140,7 +140,8 @@
           </a>
         </div>
 
-      </div>
+      </div><!-- /.window-body -->
+    </div><!-- /.app-window -->
   </main>
 
 <script src="{% static 'js/teacher_classroom.js' %}"></script>
