@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>READScore — Read the Passage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/student_dashboard.css' %}">
+</head>
+<body>
+  <div class="site-wrapper">
+
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span>READScore</span>
+          <span class="logo-sub">for Comprehension Scoring</span>
+        </div>
+        <nav class="main-nav">
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'about' %}">About</a>
+          <a href="{% url 'faq' %}">FAQ</a>
+          <a href="{% url 'contact' %}">Contact</a>
+        </nav>
+        <div class="header-actions">
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <div class="page-head">
+        <span class="eyebrow">Comprehension Check</span>
+        <h1>Read the Passage</h1>
+        <p>
+          {% if test.passage_timer %}
+            Take your time — questions will unlock automatically once the timer below runs out.
+          {% else %}
+            Read carefully, then continue to the questions when you're ready.
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="workspace" id="workspace">
+        <div class="panel passage-panel" id="passagePanel" style="flex:1; height:auto; max-height:none;">
+          <div class="passage-toggle-row">
+            <span class="passage-title-inline">Passage</span>
+            {% if test.passage_timer %}
+              <span class="suggested-tag" id="timerDisplay"></span>
+            {% endif %}
+          </div>
+          <div class="passage-content">
+            <div class="passage-body">
+              <span class="suggested-tag">Test Code: {{ test.test_code }}</span>
+              <div class="passage-text">{{ test.passage }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" id="continueForm" class="answer-footer" style="padding:0 20px 32px;">
+        {% csrf_token %}
+        <button class="btn-submit" id="continueBtn" type="submit"
+          {% if test.passage_timer %}disabled{% endif %}>
+          {% if test.passage_timer %}Please wait...{% else %}Continue to Questions{% endif %}
+        </button>
+      </form>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="features-inner footer-features">
+          <div class="feature-card">
+            <div class="feature-eyebrow">NLI SCORING</div>
+            <div class="feature-title">DeBERTa Semantic Gate</div>
+            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BERTSCORE</div>
+            <div class="feature-title">Contextual Similarity</div>
+            <p class="feature-desc">Measures semantic overlap between student and reference answers using BERT embeddings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BLOOM'S WEIGHT</div>
+            <div class="feature-title">Cognitive-Level Scoring</div>
+            <p class="feature-desc">Questions are weighted by cognitive level — from Remember to Analyze — for richer insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">PHIL-IRI</div>
+            <div class="feature-title">Official Reading Levels</div>
+            <p class="feature-desc">Results map directly to Independent, Instructional, or Frustration reading levels.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 READScore. All rights reserved.</span>
+        <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
+      </div>
+    </footer>
+
+  </div>
+
+  {% if test.passage_timer %}
+  <script>
+    (function () {
+      let remaining = {{ test.passage_timer_seconds }};
+      const display = document.getElementById('timerDisplay');
+      const continueBtn = document.getElementById('continueBtn');
+      const continueForm = document.getElementById('continueForm');
+
+      function format(total) {
+        const h = String(Math.floor(total / 3600)).padStart(2, '0');
+        const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+        const s = String(total % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      }
+
+      display.textContent = format(remaining);
+
+      const tick = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(tick);
+          display.textContent = format(0);
+          continueBtn.disabled = false;
+          continueBtn.textContent = 'Continue to Questions';
+          continueForm.submit();
+          return;
+        }
+        display.textContent = format(remaining);
+      }, 1000);
+    })();
+  </script>
+  {% endif %}
+
+</body>
+</html>

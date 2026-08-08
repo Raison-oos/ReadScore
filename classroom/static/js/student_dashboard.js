@@ -24,23 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let isHidden = false;
 
-  eyeToggle.addEventListener('click', () => {
-    isHidden = !isHidden;
+  if (eyeToggle && passagePanel) {
+    eyeToggle.addEventListener('click', () => {
+      isHidden = !isHidden;
 
-    eyeIcon.classList.add('blink');
-    eyeToggle.setAttribute('aria-pressed', String(isHidden));
-    eyeToggle.setAttribute('aria-label', isHidden ? 'Show passage' : 'Hide passage');
+      eyeIcon.classList.add('blink');
+      eyeToggle.setAttribute('aria-pressed', String(isHidden));
+      eyeToggle.setAttribute('aria-label', isHidden ? 'Show passage' : 'Hide passage');
 
-    setTimeout(() => {
-      eyeIcon.innerHTML = isHidden ? eyeClosedSVG : eyeOpenSVG;
-      passagePanel.classList.toggle('collapsed', isHidden);
-      passageTitleInline.textContent = isHidden ? 'Hidden' : 'Passage';
-    }, 180);
+      setTimeout(() => {
+        eyeIcon.innerHTML = isHidden ? eyeClosedSVG : eyeOpenSVG;
+        passagePanel.classList.toggle('collapsed', isHidden);
+        passageTitleInline.textContent = isHidden ? 'Hidden' : 'Passage';
+      }, 180);
 
-    eyeIcon.addEventListener('animationend', () => {
-      eyeIcon.classList.remove('blink');
-    }, { once: true });
-  });
+      eyeIcon.addEventListener('animationend', () => {
+        eyeIcon.classList.remove('blink');
+      }, { once: true });
+    });
+  }
 
   /* ===== Answer inputs: visual-only feedback =====
      Toggles the send-icon glow when there's text, and clears a

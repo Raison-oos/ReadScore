@@ -1,6 +1,10 @@
+import re
+
 from django import forms
 from django.forms import inlineformset_factory
 from .models import Test, Question
+
+TIMER_PATTERN = re.compile(r"^(\d{1,2}):([0-5]\d):([0-5]\d)$")
 
 
 class TestForm(forms.ModelForm):
@@ -14,10 +18,45 @@ class TestForm(forms.ModelForm):
         required=True,
         error_messages={"required": "Passage cannot be empty."},
     )
+    # hh:mm:ss entered next to the "Passage timer" toggle; converted to
+    # Test.passage_timer_seconds in clean().
+    passage_timer_value = forms.CharField(required=False)
 
     class Meta:
         model = Test
-        fields = ["passage"]
+        fields = ["passage", "separate_page", "shown_in_test", "passage_timer"]
+
+    def clean(self):
+        cleaned = super().clean()
+        timer_enabled = cleaned.get("passage_timer")
+        separate_page = cleaned.get("separate_page")
+
+        if timer_enabled and not separate_page:
+            self.add_error("passage_timer", "Passage timer requires \"Separate page\" to be enabled.")
+
+        if timer_enabled:
+            value = cleaned.get("passage_timer_value", "").strip()
+            match = TIMER_PATTERN.match(value)
+            if not match:
+                self.add_error("passage_timer_value", "Enter the timer as hh:mm:ss.")
+            else:
+                hours, minutes, seconds = (int(part) for part in match.groups())
+                total_seconds = hours * 3600 + minutes * 60 + seconds
+                if total_seconds <= 0:
+                    self.add_error("passage_timer_value", "Timer must be greater than zero.")
+                else:
+                    cleaned["passage_timer_seconds"] = total_seconds
+        else:
+            cleaned["passage_timer_seconds"] = None
+
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.passage_timer_seconds = self.cleaned_data.get("passage_timer_seconds")
+        if commit:
+            instance.save()
+        return instance
 
 
 class QuestionForm(forms.ModelForm):

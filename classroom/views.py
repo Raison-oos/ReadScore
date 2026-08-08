@@ -90,11 +90,29 @@ def delete_test(request, test_code):
     return redirect("classroom:classroom")
 
 
+@login_required
+def passage_intro(request, test_code):
+    test = get_object_or_404(Test, test_code=test_code)
+    if not test.separate_page:
+        return redirect("classroom:take_test", test_code=test.test_code)
+
+    session_key = f"passage_seen_{test.test_code}"
+
+    if request.method == "POST":
+        request.session[session_key] = True
+        return redirect("classroom:take_test", test_code=test.test_code)
+
+    return render(request, "classroom/passage_intro.html", {"test": test})
+
+
 #student answer
 @login_required
 def take_test(request, test_code):
     test = get_object_or_404(Test, test_code=test_code)
     questions = test.questions.all()
+
+    if test.separate_page and not request.session.get(f"passage_seen_{test.test_code}") and request.method != "POST":
+        return redirect("classroom:passage_intro", test_code=test.test_code)
 
     if request.method == "POST":
         errors = {}
@@ -151,11 +169,8 @@ def take_test(request, test_code):
                     defaults={
                         "test": test,
                         "answer_text": answer_text,
-                        "gate_score": result["gate_score"],
                         "bert_score": result["bert_score"],
-                        "is_correct": result["is_correct"],
-                        "is_grounded": result["is_grounded"],
-                        "is_relevant": result["is_relevant"],
+                        #"is_correct": result["is_correct"],
                     },
                 )
 

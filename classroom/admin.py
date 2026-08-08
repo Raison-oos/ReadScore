@@ -41,22 +41,17 @@ class StudentAnswerAdmin(admin.ModelAdmin):
         "question",
         "test",
         "answer_text",
-        "gate_score",
         "bert_score",
         "bloom_weight",
         "normalized_weight",
         "weighted_score",
-        "is_grounded",
-        "is_relevant",
-        "is_correct",
+        #"is_correct",
         "submitted_at",
     )
 
     list_filter = (
         "test",
-        "gate_score",
-        "is_grounded",
-        "is_correct",
+        #"is_correct",
     )
 
     def bloom_weight(self, obj):
@@ -90,7 +85,6 @@ class StudentAnswerAdmin(admin.ModelAdmin):
         weight = BLOOM_WEIGHTS.get(obj.question.blooms_level, 1)
 
         return round(
-            obj.gate_score *
             obj.bert_score *
             (weight / total),
             4,
@@ -149,7 +143,6 @@ class TestResultAdmin(admin.ModelAdmin):
         for answer in answers:
             weight = BLOOM_WEIGHTS.get(answer.question.blooms_level, 1)
             score += (
-                answer.gate_score *
                 answer.bert_score *
                 (weight / total_weight)
             )

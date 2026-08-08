@@ -7,16 +7,6 @@ from bert_score import BERTScorer
 
 class AnswerScorer:
     def __init__(self):
-        # ---- NLI ----
-        self.nli_name = "MoritzLaurer/deberta-v3-base-mnli-fever-anli"
-        self.nli_tokenizer = AutoTokenizer.from_pretrained(self.nli_name)
-        self.nli_model = AutoModelForSequenceClassification.from_pretrained(self.nli_name)
-        self.nli_model.eval()
-
-        # ---- QNLI ----
-        self.qnli_name = "cross-encoder/qnli-distilroberta-base"
-        self.qnli_model = CrossEncoder(self.qnli_name)
-
         # ---- QA ----
         self.qa_pipeline = pipeline(
             "question-answering",
@@ -32,17 +22,6 @@ class AnswerScorer:
     # Existing low-level model calls (unchanged)
     # -------------------------------------------------------------
 
-    def nli_score(self, context: str, hypothesis: str) -> torch.Tensor:
-        inputs = self.nli_tokenizer(context, hypothesis, return_tensors="pt", truncation=True)
-        with torch.no_grad():
-            logits = self.nli_model(**inputs).logits
-            probs = F.softmax(logits, dim=-1)[0]
-        return probs
-
-    def qnli_score(self, question: str, answer: str) -> float:
-        score = self.qnli_model.predict([(question, answer)])[0]
-        return torch.sigmoid(torch.tensor(score)).item()
-
     def bert_score(self, answer: str, reference: str) -> float:
         """
         Semantic similarity (F1) between the student's answer and the
@@ -50,33 +29,6 @@ class AnswerScorer:
         """
         P, R, F1 = self.bert_scorer.score([answer], [reference])
         return F1.item()
-
-    # -------------------------------------------------------------
-    # Independent evaluations
-    # -------------------------------------------------------------
-
-    def evaluate_grounded(self, story: str, answer: str) -> dict:
-        story_score = self.nli_score(story, answer)
-        story_entailment = story_score[0].item()
-        story_neutral = story_score[1].item()
-        story_contradiction = story_score[2].item()
-        is_grounded = story_entailment > 0.6
-
-        return {
-            "is_grounded": int(is_grounded),
-            "story_entailment": story_entailment,
-            "story_neutral": story_neutral,
-            "story_contradiction": story_contradiction,
-        }
-
-    def evaluate_relevant(self, question: str, answer: str) -> dict:
-        qnli_relevance = self.qnli_score(question, answer)
-        is_relevant = qnli_relevance > 0.6
-
-        return {
-            "is_relevant": int(is_relevant),
-            "question_relevance": qnli_relevance,
-        }
 
     # -------------------------------------------------------------
     # Formula: FinalScore = Σ G_i * BERTScore_i * (b_i / Σb_j)
@@ -89,20 +41,12 @@ class AnswerScorer:
         afterward, at the test level, since they need every question's
         weight to normalize correctly — see aggregate_final_score().
         """
-        grounded_result = self.evaluate_grounded(story, answer)
-        relevant_result = self.evaluate_relevant(question, answer)
-
-        gate_score = 1 if (grounded_result["is_grounded"] and relevant_result["is_relevant"]) else 0
-        #gate_score = 1 if grounded_result["is_grounded"] else 0
         bertscore = self.bert_score(answer, correct_answer)
-        is_correct = bertscore > 0.6 and gate_score == 1
+        #is_correct = bertscore > 0.6 
 
         return {
-            "gate_score": gate_score,
             "bert_score": bertscore,
-            "is_correct": is_correct,
-            "is_grounded": bool(grounded_result["is_grounded"]),
-            "is_relevant": bool(relevant_result["is_relevant"]),
+            #"is_correct": is_correct,
         }
 
     @staticmethod
@@ -122,8 +66,7 @@ class AnswerScorer:
 
         final = 0.0
         for q_score, b_i in zip(question_scores, bloom_weights):
-            final += q_score["gate_score"] * q_score["bert_score"] * (b_i / total_weight)
-            #final += q_score["bert_score"] * (b_i / total_weight)
+            final += q_score["bert_score"] * (b_i / total_weight)
 
         return final
 

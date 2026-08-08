@@ -157,10 +157,13 @@
                   </span>
                 </span>
                 <label class="sw">
-                  <input type="checkbox" name="separate_page" id="toggleSeparatePage">
+                  <input type="checkbox" name="separate_page" id="toggleSeparatePage" {% if test_form.separate_page.value %}checked{% endif %}>
                   <span class="sw-track"><span class="sw-thumb"></span></span>
                 </label>
               </div>
+              {% if test_form.separate_page.errors %}
+                <div class="field-error">{{ test_form.separate_page.errors.0 }}</div>
+              {% endif %}
 
               <!-- Shown in Test -->
               <div class="settings-row">
@@ -172,10 +175,13 @@
                   </span>
                 </span>
                 <label class="sw">
-                  <input type="checkbox" name="shown_in_test" id="toggleShownInTest">
+                  <input type="checkbox" name="shown_in_test" id="toggleShownInTest" {% if test_form.shown_in_test.value|default_if_none:True %}checked{% endif %}>
                   <span class="sw-track"><span class="sw-thumb"></span></span>
                 </label>
               </div>
+              {% if test_form.shown_in_test.errors %}
+                <div class="field-error">{{ test_form.shown_in_test.errors.0 }}</div>
+              {% endif %}
 
               <!-- Passage timer -->
               <div class="settings-row">
@@ -187,13 +193,19 @@
                   </span>
                 </span>
                 <label class="sw">
-                  <input type="checkbox" name="passage_timer" id="togglePassageTimer">
+                  <input type="checkbox" name="passage_timer" id="togglePassageTimer" {% if test_form.passage_timer.value %}checked{% endif %}>
                   <span class="sw-track"><span class="sw-thumb"></span></span>
                 </label>
               </div>
-              <div class="timer-row" id="timerRow">
-                <input class="timer-input" type="text" name="passage_timer_value" id="passageTimerValue" placeholder="hh:mm:ss" maxlength="8" autocomplete="off">
+              {% if test_form.passage_timer.errors %}
+                <div class="field-error">{{ test_form.passage_timer.errors.0 }}</div>
+              {% endif %}
+              <div class="timer-row{% if test_form.passage_timer.value %} visible{% endif %}" id="timerRow">
+                <input class="timer-input" type="text" name="passage_timer_value" id="passageTimerValue" placeholder="hh:mm:ss" maxlength="8" autocomplete="off" value="{{ test_form.passage_timer_value.value|default_if_none:'' }}">
               </div>
+              {% if test_form.passage_timer_value.errors %}
+                <div class="field-error">{{ test_form.passage_timer_value.errors.0 }}</div>
+              {% endif %}
 
               <!-- Grammar Checker -->
               <div class="settings-row">

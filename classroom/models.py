@@ -47,15 +47,26 @@ class Test(models.Model):
     )
     passage = models.TextField()
     created_by = models.ForeignKey(
-        "accounts.User",  
+        "accounts.User",
         on_delete=models.CASCADE,
         related_name="tests",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Shows the passage on its own page before questions begin.
+    separate_page = models.BooleanField(default=False)
+    # Keeps the passage visible alongside the questions while students answer.
+    shown_in_test = models.BooleanField(default=True)
+    # Countdown for how long students can read before questions appear.
+    # Only meaningful when separate_page is enabled.
+    passage_timer = models.BooleanField(default=False)
+    passage_timer_seconds = models.PositiveIntegerField(null=True, blank=True)
+
     def clean(self):
         if not self.passage or not self.passage.strip():
             raise ValidationError({"passage": "Passage cannot be empty."})
+        if self.passage_timer and not self.separate_page:
+            raise ValidationError({"passage_timer": "Passage timer requires Separate page to be enabled."})
 
     def __str__(self):
         return self.test_code
@@ -95,11 +106,8 @@ class StudentAnswer(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="student_answers")
     answer_text = models.TextField()
 
-    gate_score = models.IntegerField(null=True, blank=True)      # G_i: 1 or 0
     bert_score = models.FloatField(null=True, blank=True)         # BERTScore_i
-    is_grounded = models.BooleanField(null=True, blank=True)
-    is_relevant = models.BooleanField(null=True, blank=True)
-    is_correct = models.BooleanField(null=True, blank=True)
+    #is_correct = models.BooleanField(null=True, blank=True)
 
     submitted_at = models.DateTimeField(auto_now_add=True)
 
