@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/about.css' %}">
   
 </head>
@@ -44,10 +45,56 @@
 
     
     <main class="marketing-main">
-      
-<section class="hero">
-  <h1>Welcome to READScore</h1>
-  <p class="subtitle">Automated Reading Comprehension Scoring for Grade 6 — Phil-IRI aligned.</p>
+
+<section class="hero hero-compact">
+  <h1>About READScore</h1>
+  <p class="subtitle">Automated reading comprehension scoring for Grade 6 — Phil-IRI aligned, built to give teachers their time back.</p>
+</section>
+
+<section class="content-section">
+  <div class="content-inner">
+    <h2>Why we built it</h2>
+    <p>Grading open-ended reading comprehension answers by hand is slow, and it's hard to stay
+      perfectly consistent across dozens of students and questions. READScore reads each student's
+      answer the way a careful grader would — checking whether the meaning matches the answer key,
+      not just the wording — and does it in seconds instead of hours.</p>
+  </div>
+</section>
+
+<section class="content-section content-section-alt">
+  <div class="content-inner">
+    <h2>How it works</h2>
+    <ol class="steps-list">
+      <li>
+        <span class="step-number">1</span>
+        <div>
+          <h3>Build a class</h3>
+          <p>A teacher creates a class, gets a share code, and students join with it — no separate rosters to manage.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-number">2</span>
+        <div>
+          <h3>Add a passage and questions</h3>
+          <p>Write a reading passage and comprehension questions with an answer key. READScore automatically classifies each question by Bloom's Taxonomy level.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-number">3</span>
+        <div>
+          <h3>Students read and respond</h3>
+          <p>Students read the passage and answer in their own words — no multiple choice required.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-number">4</span>
+        <div>
+          <h3>Instant, weighted scoring</h3>
+          <p>Each answer is scored for semantic similarity to the answer key, weighted by the question's Bloom's level, and mapped to a Phil-IRI reading level.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
 </section>
 
     </main>
@@ -58,9 +105,9 @@
       <div class="footer-inner">
         <div class="features-inner footer-features">
           <div class="feature-card">
-            <div class="feature-eyebrow">NLI SCORING</div>
-            <div class="feature-title">DeBERTa Semantic Gate</div>
-            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
           </div>
           <div class="feature-card">
             <div class="feature-eyebrow">BERTSCORE</div>

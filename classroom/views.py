@@ -1,41 +1,134 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import QuestionFormSet, TestCodeForm, TestForm
+from .forms import ClassCodeForm, ClassForm, QuestionFormSet, TestForm
 from .ml.answer_scorer import get_scorer
 from .ml.classifier import classify_blooms
-from .models import BLOOM_WEIGHTS, StudentAnswer, Test, TestResult, generate_test_code
+from .models import (
+    BLOOM_WEIGHTS,
+    Classroom,
+    Enrollment,
+    StudentAnswer,
+    Test,
+    TestResult,
+    generate_test_code,
+)
 
 
 @login_required
 def classroom_view(request):
     if getattr(request.user, "role", None) == "TEACHER":
-        tests = Test.objects.filter(created_by=request.user).order_by("-created_at")
-        return render(request, "classroom/teacher_classroom.html", {"tests": tests})
+        if request.method == "POST":
+            form = ClassForm(request.POST)
+            if form.is_valid():
+                new_class = form.save(commit=False)
+                new_class.created_by = request.user
+                new_class.save()
+                messages.success(request, f"Class created. Code: {new_class.class_code}")
+                return redirect("classroom:class_detail", class_code=new_class.class_code)
+        else:
+            form = ClassForm()
+
+        classes = Classroom.objects.filter(created_by=request.user)
+        return render(request, "classroom/teacher_classroom.html", {"classes": classes, "form": form})
 
     if request.method == "POST":
-        form = TestCodeForm(request.POST)
+        form = ClassCodeForm(request.POST)
         if form.is_valid():
-            return redirect("classroom:take_test", test_code=form.cleaned_data["test_code"])
+            class_room = Classroom.objects.get(class_code=form.cleaned_data["class_code"])
+            Enrollment.objects.get_or_create(student=request.user, classroom=class_room)
+            return redirect("classroom:class_detail", class_code=class_room.class_code)
     else:
-        form = TestCodeForm()
-    # Sorting by the Test's own created_at (not a related field) so it can
-    # combine with distinct() without Django needing it in the SELECT list.
-    tests = (
-        Test.objects
-        .filter(student_answers__student=request.user)
-        .distinct()
-        .order_by("-created_at")
-    )
-    return render(request, "classroom/student_classroom.html", {"form": form, "tests": tests})
+        form = ClassCodeForm()
+
+    classes = Classroom.objects.filter(enrollments__student=request.user).distinct()
+    return render(request, "classroom/student_classroom.html", {"form": form, "classes": classes})
 
 
 @login_required
-def dashboard_view(request):
-    if getattr(request.user, "role", None) != "TEACHER":
-        return render(request, "classroom/student_dashboard.html")
+def class_detail(request, class_code):
+    class_room = get_object_or_404(Classroom, class_code=class_code)
+
+    if getattr(request.user, "role", None) == "TEACHER":
+        if class_room.created_by_id != request.user.id:
+            messages.error(request, "You don't have access to that class.")
+            return redirect("classroom:classroom")
+
+        tests = class_room.tests.order_by("-created_at")
+
+        roster = []
+        for enrollment in class_room.enrollments.select_related("student").order_by("student__username"):
+            student_results = TestResult.objects.filter(student=enrollment.student, test__classroom=class_room)
+            average = student_results.aggregate(avg=Avg("final_score"))["avg"]
+            roster.append({
+                "student": enrollment.student,
+                "completed": student_results.count(),
+                "average_score": round(average, 1) if average is not None else None,
+            })
+
+        return render(request, "classroom/class_detail_teacher.html", {
+            "classroom": class_room,
+            "tests": tests,
+            "roster": roster,
+        })
+
+    if not Enrollment.objects.filter(student=request.user, classroom=class_room).exists():
+        messages.error(request, "You're not enrolled in that class.")
+        return redirect("classroom:classroom")
+
+    results_by_test = {
+        result.test_id: result
+        for result in TestResult.objects.filter(student=request.user, test__classroom=class_room)
+    }
+
+    tests = []
+    for test in class_room.tests.order_by("-created_at"):
+        result = results_by_test.get(test.test_code)
+        total_questions = test.questions.count()
+
+        if result:
+            status = "finished"
+        elif total_questions == 0:
+            status = "missing"
+        elif StudentAnswer.objects.filter(student=request.user, test=test).exists():
+            status = "unfinished"
+        else:
+            status = "not_started"
+
+        tests.append({"test": test, "result": result, "status": status})
+
+    return render(request, "classroom/class_detail_student.html", {
+        "classroom": class_room,
+        "tests": tests,
+    })
+
+
+@login_required
+def delete_class(request, class_code):
+    class_room = get_object_or_404(Classroom, class_code=class_code, created_by=request.user)
+    if request.method == "POST":
+        name = class_room.name
+        class_room.delete()
+        messages.success(request, f'Class "{name}" deleted.')
+    return redirect("classroom:classroom")
+
+
+@login_required
+def unenroll_class(request, class_code):
+    class_room = get_object_or_404(Classroom, class_code=class_code)
+    enrollment = get_object_or_404(Enrollment, student=request.user, classroom=class_room)
+    if request.method == "POST":
+        enrollment.delete()
+        messages.success(request, f'You left "{class_room.name}".')
+    return redirect("classroom:classroom")
+
+
+@login_required
+def dashboard_view(request, class_code):
+    class_room = get_object_or_404(Classroom, class_code=class_code, created_by=request.user)
 
     if request.method == "POST":
         test_form = TestForm(request.POST)
@@ -45,6 +138,7 @@ def dashboard_view(request):
             with transaction.atomic():
                 test = test_form.save(commit=False)
                 test.test_code = generate_test_code()
+                test.classroom = class_room
                 test.created_by = request.user
                 test.save()
 
@@ -60,7 +154,7 @@ def dashboard_view(request):
                     obj.delete()
 
             messages.success(request, f"Test saved. Code: {test.test_code}")
-            return redirect("classroom:classroom")
+            return redirect("classroom:class_detail", class_code=class_room.class_code)
         else:
             messages.error(request, "Please fix the errors below.")
 
@@ -69,18 +163,23 @@ def dashboard_view(request):
         formset = QuestionFormSet(instance=Test(), prefix="questions")
 
     context = {
+        "classroom": class_room,
         "test_form": test_form,
         "formset": formset,
         "pending_test_code": request.POST.get("test_code") if request.method == "POST" else generate_test_code(),
     }
     return render(request, "classroom/teacher_dashboard.html", context)
 
+
 @login_required
 def delete_test(request, test_code):
     test = get_object_or_404(Test, test_code=test_code, created_by=request.user)
+    class_code = test.classroom_id
     if request.method == "POST":
         test.delete()
         messages.success(request, f"Test {test_code} deleted.")
+    if class_code:
+        return redirect("classroom:class_detail", class_code=class_code)
     return redirect("classroom:classroom")
 
 

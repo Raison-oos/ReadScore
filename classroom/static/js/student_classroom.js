@@ -48,6 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 260 + i * 90);
   });
 
+  /* ===== Click anywhere on a class card to open it ===== */
+  document.querySelectorAll('.sc-test-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if (card.dataset.href) window.location.href = card.dataset.href;
+    });
+  });
+
   /* ===== Card-grid view: add-card → entry overlay toggle ===== */
   const addTestBtn    = document.getElementById('addTestBtn');
   const entryOverlay  = document.getElementById('entryOverlay');

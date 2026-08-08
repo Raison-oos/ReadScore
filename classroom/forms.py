@@ -2,9 +2,26 @@ import re
 
 from django import forms
 from django.forms import inlineformset_factory
-from .models import Test, Question
+from .models import Classroom, Test, Question
 
 TIMER_PATTERN = re.compile(r"^(\d{1,2}):([0-5]\d):([0-5]\d)$")
+
+
+class ClassForm(forms.ModelForm):
+    name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            "class": "glass-input",
+            "placeholder": "e.g. Grade 6 - Section A",
+            "autocomplete": "off",
+        }),
+        error_messages={"required": "Class name cannot be empty."},
+    )
+
+    class Meta:
+        model = Classroom
+        fields = ["name"]
 
 
 class TestForm(forms.ModelForm):
@@ -87,24 +104,22 @@ QuestionFormSet = inlineformset_factory(
     validate_min=True,
 )
 
-#Student Answer
-class TestCodeForm(forms.Form):
-    test_code = forms.CharField(
+class ClassCodeForm(forms.Form):
+    class_code = forms.CharField(
         max_length=20,
         required=True,
-        #widget=forms.TextInput(attrs={"placeholder": "Enter test code"}),
         widget=forms.TextInput(attrs={
-            'id': 'classCodeInput',     
-            'class': 'glass-input',     # Crucial for student_dashboard.js to query it
+            'id': 'classCodeInput',
+            'class': 'glass-input',     # Crucial for student_classroom.js to query it
             'placeholder': 'Enter Class Code',
             'autocomplete': 'off',
             'maxlength': '20'
         }),
-        error_messages={"required": "Please enter a test code."},
+        error_messages={"required": "Please enter a class code."},
     )
 
-    def clean_test_code(self):
-        code = self.cleaned_data["test_code"].strip().upper()
-        if not Test.objects.filter(test_code=code).exists():
-            raise forms.ValidationError("No test found with that code.")
+    def clean_class_code(self):
+        code = self.cleaned_data["class_code"].strip().upper()
+        if not Classroom.objects.filter(class_code=code).exists():
+            raise forms.ValidationError("No class found with that code.")
         return code

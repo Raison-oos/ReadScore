@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/student_classroom.css' %}">
 </head>
 <body>
@@ -60,10 +61,18 @@
 
     <main class="stage">
 
-      {% if tests %}
-      <!-- ══ CARD GRID VIEW (student has existing test sessions) ══ -->
+      {% if classes %}
+      <!-- ══ CARD GRID VIEW (student has joined at least one class) ══ -->
       <div class="sc-window" id="cardView">
         <div class="sc-window-body">
+
+          {% if messages %}
+            <div class="page-messages">
+              {% for message in messages %}
+                <p class="msg-{{ message.tags }}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
 
           <!-- Student identity row -->
           <div class="sc-identity">
@@ -76,36 +85,25 @@
             <span class="sc-identity-label">Student</span>
           </div>
 
-          <!-- Test card grid -->
+          <!-- Class card grid -->
           <div class="sc-grid">
-            {% for test in tests %}
-              <article class="sc-test-card" data-status="{{ test.status }}">
+            {% for class_room in classes %}
+              <article class="sc-test-card" data-href="{% url 'classroom:class_detail' class_room.class_code %}">
                 <div class="sc-card-top">
                   <div class="sc-card-pattern" aria-hidden="true"></div>
                   <div class="sc-card-top-text">
-                    <h3>{{ test.test_code }}</h3>
-                    <p class="sc-card-detail">{{ test.status|capfirst }}</p>
+                    <h3>{{ class_room.name }}</h3>
+                    <p class="sc-card-detail">{{ class_room.test_count }} test{{ class_room.test_count|pluralize }}</p>
                   </div>
-                  <span class="sc-status-dot sc-status-{{ test.status }}"></span>
                 </div>
                 <div class="sc-card-bottom">
-                  <span class="sc-card-label">
-                    {% if test.status == "finished" %}Completed
-                    {% else %}In progress{% endif %}
-                  </span>
-                  <div class="sc-card-actions">
-                    <a href="{% url 'classroom:take_test' test.test_code %}" class="sc-icon-btn sc-resume-btn" title="Resume test">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 3L19 12L5 21V3Z" fill="currentColor" stroke="none"/>
-                      </svg>
-                    </a>
-                  </div>
+                  <span class="sc-card-label">Code: {{ class_room.class_code }}</span>
                 </div>
               </article>
             {% endfor %}
 
-            <!-- Add / enter new test — dashed placeholder card -->
-            <button class="sc-add-card" id="addTestBtn" title="Enter a new test code" type="button">
+            <!-- Add / join new class — dashed placeholder card -->
+            <button class="sc-add-card" id="addTestBtn" title="Join a class with a code" type="button">
               <span class="sc-add-plus">+</span>
             </button>
           </div>
@@ -116,7 +114,7 @@
       <!-- ══ CODE ENTRY PANEL (shown when student clicks the add card) ══ -->
       <div class="sc-entry-overlay" id="entryOverlay">
         <div class="role-card" id="roleCard">
-          <button class="sc-back-btn" id="backBtn" type="button" title="Back to my tests">
+          <button class="sc-back-btn" id="backBtn" type="button" title="Back to my classes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
@@ -130,22 +128,29 @@
           <span class="role-label">Student</span>
           <form method="post" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin:0;">
             {% csrf_token %}
-            {{ form.test_code }}
-            {% if form.test_code.errors %}
+            {{ form.class_code }}
+            {% if form.class_code.errors %}
               <p class="error-message" style="color:var(--danger);font-size:13px;font-weight:500;margin:-4px 0 0 0;text-align:center;width:100%;">
-                {{ form.test_code.errors.0 }}
+                {{ form.class_code.errors.0 }}
               </p>
             {% endif %}
             <button class="glass-btn glass-btn-primary" type="submit">
-              <span>Enter</span>
+              <span>Join</span>
             </button>
           </form>
         </div>
       </div>
 
       {% else %}
-      <!-- ══ NO TESTS YET: show only the code entry card ══ -->
+      <!-- ══ NO CLASSES YET: show only the code entry card ══ -->
       <div class="role-card" id="roleCard">
+        {% if messages %}
+          <div class="page-messages">
+            {% for message in messages %}
+              <p class="msg-{{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
         <div class="avatar-circle">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="3.6" stroke="currentColor" stroke-width="1.6"/>
@@ -155,14 +160,14 @@
         <span class="role-label">Student</span>
         <form method="post" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin:0;">
           {% csrf_token %}
-          {{ form.test_code }}
-          {% if form.test_code.errors %}
+          {{ form.class_code }}
+          {% if form.class_code.errors %}
             <p class="error-message" style="color:var(--danger);font-size:13px;font-weight:500;margin:-4px 0 0 0;text-align:center;width:100%;">
-              {{ form.test_code.errors.0 }}
+              {{ form.class_code.errors.0 }}
             </p>
           {% endif %}
           <button class="glass-btn glass-btn-primary" id="enterBtn" type="submit">
-            <span>Enter</span>
+            <span>Join</span>
           </button>
         </form>
       </div>
@@ -176,9 +181,9 @@
       <div class="footer-inner">
         <div class="features-inner footer-features">
           <div class="feature-card">
-            <div class="feature-eyebrow">NLI SCORING</div>
-            <div class="feature-title">DeBERTa Semantic Gate</div>
-            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
           </div>
           <div class="feature-card">
             <div class="feature-eyebrow">BERTSCORE</div>

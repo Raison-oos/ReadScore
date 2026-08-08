@@ -65,3 +65,16 @@ yarn-error.log*
 
 # Static asset caches
 *.map
+
+# ML model weights — these are large binaries (the tracked
+# bloom_taxonomy_model/model.safetensors is ~418MB) that don't belong in
+# git history. Track only the small config/tokenizer JSON files next to
+# them; distribute weights separately (release asset, Git LFS, cloud
+# storage, or a download step) instead of committing them directly.
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.onnx
+*.h5
+*.ckpt

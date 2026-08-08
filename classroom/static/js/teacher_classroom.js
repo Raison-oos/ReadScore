@@ -7,26 +7,24 @@ document.addEventListener('DOMContentLoaded', () => {
     card.style.animationDelay = (i * 0.06) + 's';
   });
 
-  /* ===== Single-select highlight (click card body to focus it) =====
-     Purely visual — doesn't affect what data gets sent anywhere. */
+  /* ===== Click card body to open the class ===== */
   cards.forEach(card => {
     card.addEventListener('click', (e) => {
       if (e.target.closest('.icon-btn') || e.target.closest('form')) return;
-      cards.forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
+      if (card.dataset.href) window.location.href = card.dataset.href;
     });
   });
 
-  /* ===== Delete test: confirm, then let the real form submission
+  /* ===== Delete class: confirm, then let the real form submission
      happen. The exit animation only plays after the user confirms —
      the actual deletion is a real POST request to the server, not
      something JS fakes locally. ===== */
   document.querySelectorAll('.delete-form').forEach(form => {
     form.addEventListener('submit', (e) => {
       const card = form.closest('.test-card');
-      const testCode = card ? card.dataset.testCode : 'this test';
+      const className = card ? card.dataset.className : 'this class';
 
-      if (!window.confirm(`Delete ${testCode}? This cannot be undone.`)) {
+      if (!window.confirm(`Delete "${className}"? This removes all its tests and enrolled students. This cannot be undone.`)) {
         e.preventDefault();
         return;
       }
@@ -38,6 +36,31 @@ document.addEventListener('DOMContentLoaded', () => {
       // so the browser actually sends the POST request to Django
     });
   });
+
+  /* ===== Create Class modal open/close ===== */
+  const classModalOverlay = document.getElementById('classModalOverlay');
+  const openBtn = document.getElementById('openCreateClassBtn');
+  const closeBtn = document.getElementById('closeCreateClassBtn');
+
+  if (classModalOverlay) {
+    const openModal = () => classModalOverlay.classList.add('visible');
+    const closeModal = () => classModalOverlay.classList.remove('visible');
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+    classModalOverlay.addEventListener('click', (e) => {
+      if (e.target === classModalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Re-open automatically if the form was submitted with errors.
+    if (classModalOverlay.querySelector('.field-error')) {
+      openModal();
+    }
+  }
 
   /* ===== Export test record: brief visual confirmation on the icon.
      The actual file download is handled by the browser navigating to

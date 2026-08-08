@@ -20,7 +20,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('classroom:dashboard')
+        return redirect('classroom:classroom')
 
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)

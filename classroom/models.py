@@ -10,6 +10,68 @@ def generate_test_code():
         if not Test.objects.filter(test_code=code).exists():
             return code
 
+
+def generate_class_code():
+    while True:
+        code = "CL-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        if not Classroom.objects.filter(class_code=code).exists():
+            return code
+
+
+class Classroom(models.Model):
+    class_code = models.CharField(
+        max_length=20,
+        primary_key=True,
+        default=generate_class_code,
+        editable=False,
+    )
+    name = models.CharField(max_length=150)
+    created_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="classes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def clean(self):
+        if not self.name or not self.name.strip():
+            raise ValidationError({"name": "Class name cannot be empty."})
+
+    @property
+    def student_count(self):
+        return self.enrollments.count()
+
+    @property
+    def test_count(self):
+        return self.tests.count()
+
+    def __str__(self):
+        return self.name
+
+
+class Enrollment(models.Model):
+    student = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("student", "classroom")
+
+    def __str__(self):
+        return f"{self.student} in {self.classroom}"
+
+
 class BloomsLevel(models.TextChoices):
     REMEMBERING = "REMEMBER", "Remembering"
     UNDERSTANDING = "UNDERSTAND", "Understanding"
@@ -35,6 +97,13 @@ class Test(models.Model):
         primary_key=True,
         default=generate_test_code,
         editable=False,
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="tests",
+        null=True,
+        blank=True,
     )
     passage = models.TextField()
     created_by = models.ForeignKey(

@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ classroom.name }} — READScore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/class_detail.css' %}">
+</head>
+<body>
+  <div class="site-wrapper">
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span>READScore</span>
+          <span class="logo-sub">for Comprehension Scoring</span>
+        </div>
+        <nav class="main-nav">
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'about' %}">About</a>
+          <a href="{% url 'faq' %}">FAQ</a>
+          <a href="{% url 'contact' %}">Contact</a>
+        </nav>
+        <div class="header-actions">
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <div class="bg-scene" aria-hidden="true">
+      <div class="blob blob-blue"></div>
+      <div class="blob blob-gold"></div>
+    </div>
+
+    <main class="stage">
+      <div class="app-window">
+        <div class="window-body">
+
+          <a href="{% url 'classroom:classroom' %}" class="breadcrumb">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            My Classes
+          </a>
+
+          {% if messages %}
+            <div class="page-messages">
+              {% for message in messages %}
+                <p class="msg-{{ message.tags }}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="class-header">
+            <div>
+              <h1>{{ classroom.name }}</h1>
+              <span class="class-code-badge">Class Code: <strong>{{ classroom.class_code }}</strong></span>
+            </div>
+            <form method="post" action="{% url 'classroom:unenroll_class' classroom.class_code %}" id="unenrollForm">
+              {% csrf_token %}
+              <button type="submit" class="glass-btn glass-btn-muted">
+                <span>Leave Class</span>
+              </button>
+            </form>
+          </div>
+
+          <section class="section">
+            <div class="section-title-row">
+              <h2 class="section-title">Tests &amp; Activities</h2>
+            </div>
+
+            <div class="test-list">
+              {% for row in tests %}
+                <a class="test-row" href="{% if row.status == 'finished' %}{% url 'classroom:student_result' row.test.test_code %}{% elif row.status != 'missing' %}{% url 'classroom:take_test' row.test.test_code %}{% else %}#{% endif %}" style="{% if row.status == 'missing' %}pointer-events:none;opacity:0.6;{% endif %}">
+                  <div class="test-row-main">
+                    <p class="test-row-title">{{ row.test.test_code }}</p>
+                    <p class="test-row-detail">
+                      {% if row.status == "missing" %}Not ready yet — the teacher hasn't added questions.
+                      {% elif row.status == "not_started" %}Not started
+                      {% elif row.status == "unfinished" %}In progress
+                      {% else %}Completed{% endif %}
+                    </p>
+                  </div>
+                  <span class="status-pill status-{{ row.status }}">
+                    {% if row.status == "not_started" %}not started{% else %}{{ row.status }}{% endif %}
+                  </span>
+                  {% if row.result %}
+                    <span class="test-row-score">{{ row.result.final_score }}%</span>
+                  {% endif %}
+                </a>
+              {% empty %}
+                <div class="empty-state">No tests have been assigned to this class yet.</div>
+              {% endfor %}
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="features-inner footer-features">
+          <div class="feature-card">
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BERTSCORE</div>
+            <div class="feature-title">Contextual Similarity</div>
+            <p class="feature-desc">Measures semantic overlap between student and reference answers using BERT embeddings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BLOOM'S WEIGHT</div>
+            <div class="feature-title">Cognitive-Level Scoring</div>
+            <p class="feature-desc">Questions are weighted by cognitive level — from Remember to Analyze — for richer insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">PHIL-IRI</div>
+            <div class="feature-title">Official Reading Levels</div>
+            <p class="feature-desc">Results map directly to Independent, Instructional, or Frustration reading levels.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 READScore. All rights reserved.</span>
+        <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    var unenrollForm = document.getElementById('unenrollForm');
+    if (unenrollForm) {
+      unenrollForm.addEventListener('submit', function (e) {
+        if (!window.confirm('Leave "{{ classroom.name|escapejs }}"? You\'ll need the class code to rejoin.')) {
+          e.preventDefault();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

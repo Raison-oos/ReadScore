@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/register.css' %}">
   
 
@@ -166,9 +167,9 @@
       <div class="footer-inner">
         <div class="features-inner footer-features">
           <div class="feature-card">
-            <div class="feature-eyebrow">NLI SCORING</div>
-            <div class="feature-title">DeBERTa Semantic Gate</div>
-            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
           </div>
           <div class="feature-card">
             <div class="feature-eyebrow">BERTSCORE</div>

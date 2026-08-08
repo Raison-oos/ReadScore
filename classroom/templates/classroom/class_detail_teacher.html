@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ classroom.name }} — READScore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/class_detail.css' %}">
+</head>
+<body>
+  <div class="site-wrapper">
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span>READScore</span>
+          <span class="logo-sub">for Comprehension Scoring</span>
+        </div>
+        <nav class="main-nav">
+          <a href="{% url 'home' %}">Home</a>
+          <a href="{% url 'about' %}">About</a>
+          <a href="{% url 'faq' %}">FAQ</a>
+          <a href="{% url 'contact' %}">Contact</a>
+        </nav>
+        <div class="header-actions">
+          {% if user.is_authenticated %}
+            <a href="{% url 'accounts:logout' %}" class="btn btn-primary">Log Out</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Log In</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <div class="bg-scene" aria-hidden="true">
+      <div class="blob blob-blue"></div>
+      <div class="blob blob-gold"></div>
+    </div>
+
+    <main class="stage">
+      <div class="app-window">
+        <div class="window-body">
+
+          <a href="{% url 'classroom:classroom' %}" class="breadcrumb">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            My Classes
+          </a>
+
+          {% if messages %}
+            <div class="page-messages">
+              {% for message in messages %}
+                <p class="msg-{{ message.tags }}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="class-header">
+            <div>
+              <h1>{{ classroom.name }}</h1>
+              <span class="class-code-badge">Class Code: <strong>{{ classroom.class_code }}</strong></span>
+            </div>
+            <a href="{% url 'classroom:dashboard' classroom.class_code %}" class="glass-btn glass-btn-primary">
+              <span>+ Create Test</span>
+            </a>
+          </div>
+
+          <section class="section">
+            <div class="section-title-row">
+              <h2 class="section-title">Tests &amp; Activities</h2>
+            </div>
+
+            <div class="test-list">
+              {% for test in tests %}
+                <div class="test-row">
+                  <div class="test-row-main">
+                    <p class="test-row-title">{{ test.test_code }}</p>
+                    <p class="test-row-detail">{{ test.questions.count }} question{{ test.questions.count|pluralize }} · created {{ test.created_at|date:"M j, Y" }}</p>
+                  </div>
+                  <span class="status-pill status-{{ test.status }}">{{ test.status }}</span>
+                  <div class="test-row-actions">
+                    <form method="post" action="{% url 'classroom:delete_test' test.test_code %}" class="delete-form">
+                      {% csrf_token %}
+                      <button class="icon-btn delete-btn" title="Delete test" type="submit">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path class="lid" d="M4 7H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                          <path d="M9 7V5.2C9 4.5 9.5 4 10.2 4H13.8C14.5 4 15 4.5 15 5.2V7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                          <path d="M6 7L6.9 19.1C7 19.9 7.6 20.5 8.4 20.5H15.6C16.4 20.5 17 19.9 17.1 19.1L18 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                          <path d="M10 11V16.5M14 11V16.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              {% empty %}
+                <div class="empty-state">No tests yet. Create your first one for this class above.</div>
+              {% endfor %}
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-title-row">
+              <h2 class="section-title">Students ({{ roster|length }})</h2>
+            </div>
+
+            {% if roster %}
+              <table class="roster-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Tests Completed</th>
+                    <th>Average Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in roster %}
+                    <tr>
+                      <td>
+                        <div class="student-name">{{ row.student.get_full_name|default:row.student.username }}</div>
+                        <div class="student-email">{{ row.student.email }}</div>
+                      </td>
+                      <td>{{ row.completed }} / {{ tests|length }}</td>
+                      <td>{% if row.average_score is not None %}{{ row.average_score }}%{% else %}—{% endif %}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="empty-state">No students have joined yet. Share the class code above so they can join.</div>
+            {% endif %}
+          </section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="features-inner footer-features">
+          <div class="feature-card">
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BERTSCORE</div>
+            <div class="feature-title">Contextual Similarity</div>
+            <p class="feature-desc">Measures semantic overlap between student and reference answers using BERT embeddings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">BLOOM'S WEIGHT</div>
+            <div class="feature-title">Cognitive-Level Scoring</div>
+            <p class="feature-desc">Questions are weighted by cognitive level — from Remember to Analyze — for richer insights.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-eyebrow">PHIL-IRI</div>
+            <div class="feature-title">Official Reading Levels</div>
+            <p class="feature-desc">Results map directly to Independent, Instructional, or Frustration reading levels.</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 READScore. All rights reserved.</span>
+        <span>Phil-IRI Aligned · Grade 6 Reading Comprehension</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

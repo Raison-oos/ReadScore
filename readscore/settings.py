@@ -125,7 +125,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 #login redirects
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'classroom:dashboard'
+LOGIN_REDIRECT_URL = 'classroom:classroom'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
 # Sessions end when the browser closes unless the user checks "Remember Me"

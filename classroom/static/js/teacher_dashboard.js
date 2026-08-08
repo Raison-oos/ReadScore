@@ -92,15 +92,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ===== Settings panel collapse ===== */
-  const settingsCollapseBtn = document.getElementById('settingsCollapseBtn');
-  const settingsBody        = document.getElementById('settingsBody');
-  if (settingsCollapseBtn && settingsBody) {
-    settingsCollapseBtn.addEventListener('click', () => {
-      const isOpen = settingsCollapseBtn.getAttribute('aria-expanded') === 'true';
-      settingsCollapseBtn.setAttribute('aria-expanded', String(!isOpen));
-      settingsBody.classList.toggle('collapsed', isOpen);
+  /* ===== Test Settings popup open/close ===== */
+  const settingsModalOverlay = document.getElementById('settingsModalOverlay');
+  const openSettingsBtn      = document.getElementById('openSettingsBtn');
+  const closeSettingsBtn     = document.getElementById('closeSettingsBtn');
+
+  if (settingsModalOverlay) {
+    const openSettingsModal  = () => settingsModalOverlay.classList.add('visible');
+    const closeSettingsModal = () => settingsModalOverlay.classList.remove('visible');
+
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', openSettingsModal);
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettingsModal);
+
+    settingsModalOverlay.addEventListener('click', (e) => {
+      if (e.target === settingsModalOverlay) closeSettingsModal();
     });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSettingsModal();
+    });
+
+    // Re-open automatically if the form was submitted with a settings error.
+    if (settingsModalOverlay.querySelector('.field-error')) {
+      openSettingsModal();
+    }
   }
 
   /* ===== Passage timer show/hide ===== */

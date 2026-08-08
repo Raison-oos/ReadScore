@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
 </head>
 <body>
@@ -39,16 +40,25 @@
       </div>
     </header>
 
+    <div class="bg-scene" aria-hidden="true">
+      <div class="blob blob-blue"></div>
+      <div class="blob blob-gold"></div>
+    </div>
+
     <main>
 
-      <div class="page-head">
-        <span class="eyebrow">Passage Builder</span>
-        <h1>Create Question &amp; Answer</h1>
-        <p>Pair this passage with comprehension questions and answer keys. READScore uses these to score student responses against Phil-IRI reading levels and Bloom's Taxonomy.</p>
-      </div>
-
-      <div class="test-code-banner">
-        Test Code: <strong id="testCode">{{ pending_test_code }}</strong>
+      <div class="dashboard-toolbar">
+        <a href="{% url 'classroom:class_detail' classroom.class_code %}" class="breadcrumb-link">&lsaquo; Back to {{ classroom.name }}</a>
+        <div class="toolbar-right">
+          <span class="test-code-badge">Test Code: <strong id="testCode">{{ pending_test_code }}</strong></span>
+          <button type="button" class="settings-trigger-btn" id="openSettingsBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            Test Settings
+          </button>
+        </div>
       </div>
 
       {% if messages %}
@@ -59,11 +69,10 @@
         </div>
       {% endif %}
 
-      <!-- The form IS the workspace grid — avoids the form wrapper breaking the 3-column grid -->
       <form method="post" id="builderForm" class="workspace" novalidate>
         {% csrf_token %}
 
-        <!-- ── Column 1: Passage panel ── -->
+        <!-- ── Passage panel (top) ── -->
         <div class="panel passage-panel">
           <div class="passage-header">
             <span class="label">Reading Passage</span>
@@ -78,7 +87,7 @@
           </div>
         </div>
 
-        <!-- ── Column 2: Question & Answer panel ── -->
+        <!-- ── Question & Answer panel (below passage) ── -->
         <div class="panel qa-panel">
           <div class="qa-header">
             <h2>Question and Answer</h2>
@@ -132,20 +141,20 @@
           </div>
         </div>
 
-        <!-- ── Column 3: Settings panel ── -->
-        <aside class="settings-panel">
-          <div class="settings-card">
+        <!-- ── Test Settings popup (opened from the toolbar button) ── -->
+        <div class="settings-modal-overlay" id="settingsModalOverlay">
+          <div class="settings-modal">
 
-            <div class="settings-header">
-              <span class="settings-title">Passage</span>
-              <button class="settings-collapse-btn" type="button" id="settingsCollapseBtn" aria-expanded="true" aria-label="Collapse settings">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="4 6 8 10 12 6"/>
+            <div class="settings-modal-header">
+              <span class="settings-title">Test Settings</span>
+              <button class="modal-close-btn" type="button" id="closeSettingsBtn" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
               </button>
             </div>
 
-            <div class="settings-body" id="settingsBody">
+            <div class="settings-modal-body">
 
               <!-- Separate page -->
               <div class="settings-row">
@@ -222,13 +231,11 @@
                 </label>
               </div>
 
-              <div class="settings-save-row">
-                <button class="btn-settings-save" type="button">Save</button>
-              </div>
+              <p class="settings-note">These settings save automatically when you create the test.</p>
 
-            </div><!-- /.settings-body -->
-          </div><!-- /.settings-card -->
-        </aside>
+            </div><!-- /.settings-modal-body -->
+          </div><!-- /.settings-modal -->
+        </div><!-- /.settings-modal-overlay -->
 
       </form><!-- /.workspace -->
 
@@ -264,9 +271,9 @@
       <div class="footer-inner">
         <div class="features-inner footer-features">
           <div class="feature-card">
-            <div class="feature-eyebrow">NLI SCORING</div>
-            <div class="feature-title">DeBERTa Semantic Gate</div>
-            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
           </div>
           <div class="feature-card">
             <div class="feature-eyebrow">BERTSCORE</div>

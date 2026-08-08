@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/contact.css' %}">
   
 </head>
@@ -44,10 +45,36 @@
 
     
     <main class="marketing-main">
-      
-<section class="hero">
-  <h1>Contact Us</h1>
-  <p class="subtitle">A contact form or details will go here.</p>
+
+<section class="hero hero-compact">
+  <h1>Get in Touch</h1>
+  <p class="subtitle">Questions about scoring, classes, or something not working right? We're happy to help.</p>
+</section>
+
+<section class="contact-section">
+  <div class="contact-card">
+    <div class="contact-row">
+      <div class="contact-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M4 6l8 7 8-7"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+      </div>
+      <div>
+        <h3>Email support</h3>
+        <p>For bug reports, account issues, or general questions, reach out any time.</p>
+        <a href="mailto:support@readscore.app" class="contact-link">support@readscore.app</a>
+      </div>
+    </div>
+
+    <div class="contact-row">
+      <div class="contact-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+      </div>
+      <div>
+        <h3>Check the FAQ first</h3>
+        <p>Common questions about scoring, reading levels, and joining a class are already answered there.</p>
+        <a href="{% url 'faq' %}" class="contact-link">Visit the FAQ &rsaquo;</a>
+      </div>
+    </div>
+  </div>
 </section>
 
     </main>
@@ -58,9 +85,9 @@
       <div class="footer-inner">
         <div class="features-inner footer-features">
           <div class="feature-card">
-            <div class="feature-eyebrow">NLI SCORING</div>
-            <div class="feature-title">DeBERTa Semantic Gate</div>
-            <p class="feature-desc">Ensures correctness before scoring with Natural Language Inference classification.</p>
+            <div class="feature-eyebrow">AUTO-CLASSIFICATION</div>
+            <div class="feature-title">Bloom's Level Detection</div>
+            <p class="feature-desc">A fine-tuned BERT classifier tags each question's cognitive level automatically — no manual labeling.</p>
           </div>
           <div class="feature-card">
             <div class="feature-eyebrow">BERTSCORE</div>
