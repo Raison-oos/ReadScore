@@ -70,6 +70,20 @@
         {% endfor %}
         <span class="role-toggle-thumb"></span>
       </div>
+      <script>
+        (function() {
+          var toggle = document.currentScript.previousElementSibling;
+          var options = toggle.querySelectorAll('.role-toggle-option');
+          options.forEach(function(opt) {
+            var input = opt.querySelector('input[type="radio"]');
+            if (!input) return;
+            input.addEventListener('change', function() {
+              options.forEach(function(o) { o.classList.remove('is-active'); });
+              opt.classList.add('is-active');
+            });
+          });
+        })();
+      </script>
 
       <p>
         <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}:</label>
