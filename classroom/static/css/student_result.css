@@ -90,12 +90,7 @@ body{
   to{ opacity:1; transform:translateY(0) scale(1); }
 }
 
-.window-chrome{
-  display:flex;
-  gap:8px;
-  padding:14px 20px;
-  background:linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.82));
-}
+.window-chrome{ display:none; }
 .window-chrome .dot{ width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,0.7); }
 
 .window-body{
@@ -420,14 +415,7 @@ body{
 
 }
 
-.window-chrome{
-  display:flex;
-  gap:8px;
-  padding:14px 20px;
-  background:linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.82));
-}
-
-
+.window-chrome{ display:none; }
 .window-chrome .dot{ width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,0.7); }
 
 
