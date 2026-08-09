@@ -74,9 +74,9 @@
 
             <div class="test-list">
               {% for test in tests %}
-                <div class="test-row">
+                <div class="test-row" data-href="{% url 'classroom:teacher_test_results' test.test_code %}">
                   <div class="test-row-main">
-                    <p class="test-row-title">{{ test.test_code }}</p>
+                    <p class="test-row-title">{{ test.title|default:"Untitled Test" }}</p>
                     <p class="test-row-detail">{{ test.questions.count }} question{{ test.questions.count|pluralize }} · created {{ test.created_at|date:"M j, Y" }}</p>
                   </div>
                   <span class="status-pill status-{{ test.status }}">{{ test.status }}</span>
@@ -112,6 +112,7 @@
                     <th>Student</th>
                     <th>Tests Completed</th>
                     <th>Average Score</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -123,6 +124,19 @@
                       </td>
                       <td>{{ row.completed }} / {{ tests|length }}</td>
                       <td>{% if row.average_score is not None %}{{ row.average_score }}%{% else %}—{% endif %}</td>
+                      <td>
+                        <form method="post" action="{% url 'classroom:remove_student' classroom.class_code row.student.id %}" class="remove-student-form">
+                          {% csrf_token %}
+                          <button class="icon-btn delete-btn" title="Remove student" type="submit">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path class="lid" d="M4 7H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                              <path d="M9 7V5.2C9 4.5 9.5 4 10.2 4H13.8C14.5 4 15 4.5 15 5.2V7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                              <path d="M6 7L6.9 19.1C7 19.9 7.6 20.5 8.4 20.5H15.6C16.4 20.5 17 19.9 17.1 19.1L18 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                              <path d="M10 11V16.5M14 11V16.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                            </svg>
+                          </button>
+                        </form>
+                      </td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -167,5 +181,22 @@
       </div>
     </footer>
   </div>
+
+  <script>
+    document.querySelectorAll('.remove-student-form').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        if (!window.confirm('Remove this student from the class? They will need the class code to rejoin.')) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    document.querySelectorAll('.test-row[data-href]').forEach(function (row) {
+      row.addEventListener('click', function (e) {
+        if (e.target.closest('.icon-btn') || e.target.closest('form')) return;
+        window.location.href = row.dataset.href;
+      });
+    });
+  </script>
 </body>
 </html>

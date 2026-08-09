@@ -53,10 +53,8 @@
         <a href="{% url 'classroom:class_detail' test.classroom.class_code %}" class="breadcrumb-link">&lsaquo; Back to {{ test.classroom.name }}</a>
       {% endif %}
 
-  <div class="page-head">
-    <span class="eyebrow">Comprehension Check</span>
-    <h1>Answer the Questions</h1>
-    <p>Read the passage carefully, then answer every question in your own words. You can hide the passage at any time using the eye icon.</p>
+  <div class="test-title-row">
+    <h1 class="test-title">{{ test.title|default:"Untitled Test" }}</h1>
   </div>
 
   <div class="workspace" id="workspace">
@@ -79,7 +77,7 @@
 
       <div class="passage-content" id="passageContent">
         <div class="passage-body">
-          <span class="suggested-tag">Test Code: {{ test.test_code }}</span>
+          <span class="suggested-tag">{{ test.title|default:"Untitled Test" }}</span>
           <div class="passage-text">{{ test.passage }}</div>
         </div>
       </div>

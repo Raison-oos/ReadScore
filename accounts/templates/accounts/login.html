@@ -96,7 +96,7 @@
           <input type="checkbox" name="remember_me">
           Remember Me
         </label>
-        <a href="#" class="login-forgot">Forgot Password?</a>
+        <a href="{% url 'accounts:forgot_password' %}" class="login-forgot">Forgot Password?</a>
       </div>
 
       <button type="submit" class="login-submit-btn">Submit</button>

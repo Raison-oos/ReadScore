@@ -105,6 +105,7 @@ class Test(models.Model):
         null=True,
         blank=True,
     )
+    title = models.CharField(max_length=200, blank=True, default="")
     passage = models.TextField()
     created_by = models.ForeignKey(
         "accounts.User",

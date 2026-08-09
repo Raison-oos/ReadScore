@@ -25,6 +25,17 @@ class ClassForm(forms.ModelForm):
 
 
 class TestForm(forms.ModelForm):
+    title = forms.CharField(
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={
+            "class": "test-title-input",
+            "id": "testTitle",
+            "placeholder": "e.g. Chapter 3 Reading Check",
+            "autocomplete": "off",
+        }),
+        error_messages={"required": "Test title cannot be empty."},
+    )
     passage = forms.CharField(
         widget=forms.Textarea(attrs={
             "class": "passage-text",
@@ -41,7 +52,7 @@ class TestForm(forms.ModelForm):
 
     class Meta:
         model = Test
-        fields = ["passage", "separate_page", "shown_in_test", "passage_timer"]
+        fields = ["title", "passage", "separate_page", "shown_in_test", "passage_timer"]
 
     def clean(self):
         cleaned = super().clean()

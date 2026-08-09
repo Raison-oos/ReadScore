@@ -29,11 +29,10 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* .site-wrapper (base.css) is a min-height:100vh flex column with
-   header/footer as natural-height siblings, so flex:1 on <main> makes
-   it exactly fill the remaining space — the footer sits right at the
-   bottom edge of the viewport and appears immediately once you scroll. */
-main{ flex:1; display:flex; flex-direction:column; }
+/* Forcing min-height:100vh on <main> means it always fills the full
+   viewport regardless of content, so the footer sits below the fold
+   and requires a scroll to reach. */
+main{ flex:1; min-height:100vh; display:flex; flex-direction:column; }
 
 /* ===== Top bar ===== */
 .topbar{
@@ -81,6 +80,10 @@ main{ flex:1; display:flex; flex-direction:column; }
 .eyebrow::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--gold); }
 .page-head h1{ font-size:34px; font-weight:800; letter-spacing:-0.01em; margin:0 0 14px; color:var(--ink); }
 .page-head p{ font-size:15.5px; color:var(--ink-soft); margin:0 0 44px; max-width:720px; line-height:1.75; }
+
+/* ===== Test title ===== */
+.test-title-row{ padding:20px 20px 0; }
+.test-title{ font-size:28px; font-weight:800; letter-spacing:-0.01em; margin:0; color:var(--ink); }
 
 /* ===== Workspace ===== */
 .workspace{
@@ -430,9 +433,10 @@ main{ flex:1; display:flex; flex-direction:column; }
 .btn-submit:active{ transform:translateY(1px); box-shadow:none; }
 
 @media (max-width:900px){
-  .workspace{ flex-direction:column; padding:12px 12px 32px; }
+  .workspace{ flex-direction:column; padding:20px 12px 32px; }
   .passage-panel{ flex-basis:auto; width:100%; height:auto; max-height:320px; }
   .passage-panel.collapsed{ flex-basis:auto; width:100%; }
   .answer-panel{ width:100%; height:auto; }
   .page-head{ padding:20px 12px 0; }
+  .test-title-row{ padding:16px 12px 0; }
 }

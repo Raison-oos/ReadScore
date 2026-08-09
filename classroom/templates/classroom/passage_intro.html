@@ -47,7 +47,8 @@
         <h1>Read the Passage</h1>
         <p>
           {% if test.passage_timer %}
-            Take your time — questions will unlock automatically once the timer below runs out.
+            Take your time — "Continue" unlocks partway through so you can move on once you've
+            read it, or just wait and questions will unlock automatically when the timer runs out.
           {% else %}
             Read carefully, then continue to the questions when you're ready.
           {% endif %}
@@ -64,7 +65,7 @@
           </div>
           <div class="passage-content">
             <div class="passage-body">
-              <span class="suggested-tag">Test Code: {{ test.test_code }}</span>
+              <span class="suggested-tag">{{ test.title|default:"Untitled Test" }}</span>
               <div class="passage-text">{{ test.passage }}</div>
             </div>
           </div>
@@ -117,7 +118,13 @@
   {% if test.passage_timer %}
   <script>
     (function () {
-      let remaining = {{ test.passage_timer_seconds }};
+      const totalSeconds = {{ test.passage_timer_seconds }};
+      // Continue unlocks once at least half the timer has elapsed, so
+      // students who finish reading early aren't forced to sit through
+      // the whole countdown — it just guarantees a minimum reading time.
+      const graceSeconds = Math.ceil(totalSeconds / 2);
+
+      let remaining = totalSeconds;
       const display = document.getElementById('timerDisplay');
       const continueBtn = document.getElementById('continueBtn');
       const continueForm = document.getElementById('continueForm');
@@ -129,15 +136,22 @@
         return `${h}:${m}:${s}`;
       }
 
+      function unlockContinue() {
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'Continue to Questions';
+      }
+
       display.textContent = format(remaining);
+      if (remaining <= graceSeconds) unlockContinue();
 
       const tick = setInterval(() => {
         remaining -= 1;
+
+        if (remaining <= graceSeconds) unlockContinue();
+
         if (remaining <= 0) {
           clearInterval(tick);
           display.textContent = format(0);
-          continueBtn.disabled = false;
-          continueBtn.textContent = 'Continue to Questions';
           continueForm.submit();
           return;
         }

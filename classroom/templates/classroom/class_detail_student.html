@@ -79,7 +79,7 @@
               {% for row in tests %}
                 <a class="test-row" href="{% if row.status == 'finished' %}{% url 'classroom:student_result' row.test.test_code %}{% elif row.status != 'missing' %}{% url 'classroom:take_test' row.test.test_code %}{% else %}#{% endif %}" style="{% if row.status == 'missing' %}pointer-events:none;opacity:0.6;{% endif %}">
                   <div class="test-row-main">
-                    <p class="test-row-title">{{ row.test.test_code }}</p>
+                    <p class="test-row-title">{{ row.test.title|default:"Untitled Test" }}</p>
                     <p class="test-row-detail">
                       {% if row.status == "missing" %}Not ready yet — the teacher hasn't added questions.
                       {% elif row.status == "not_started" %}Not started

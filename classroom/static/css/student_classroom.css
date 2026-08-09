@@ -144,15 +144,14 @@ body{
 .brand-sub{ font-size:13px; color:var(--ink-soft); font-weight:400; }
 
 /* ===================== Stage / role card =====================
-   .stage IS the <main> element. .site-wrapper (base.css) is a
-   min-height:100vh flex column with header/footer as natural-height
-   siblings, so flex:1 here makes .stage exactly fill the remaining
-   space — the footer sits right at the bottom edge of the viewport
-   (invisible until scrolled to) and appears immediately once you do. */
+   .stage IS the <main> element. Forcing min-height:100vh here means
+   main always fills the full viewport regardless of content, so the
+   footer sits below the fold and requires a scroll to reach. */
 .stage{
   position:relative;
   z-index:2;
   flex:1;
+  min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -385,6 +384,7 @@ body{
   flex-direction:column;
   align-self:start;
   width:100%;
+  height:230px;
   opacity:0;
   transform:translateY(10px);
   animation:cardRise 0.5s cubic-bezier(0.2,0.7,0.2,1) forwards;
@@ -404,7 +404,8 @@ body{
   padding:20px 18px 48px;
   background:linear-gradient(160deg, #C7CBD3 0%, #B7BCC6 100%);
   overflow:hidden;
-  min-height:130px;
+  flex:1;
+  min-height:0;
 }
 .sc-card-pattern{
   position:absolute;

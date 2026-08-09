@@ -36,12 +36,10 @@ body{
 @keyframes driftOne{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(50px,30px) scale(1.06); } }
 @keyframes driftTwo{ 0%,100%{ transform:translate(0,0) scale(1); } 50%{ transform:translate(-40px,-24px) scale(1.05); } }
 
-/* .stage IS the <main> element. .site-wrapper (base.css) is a
-   min-height:100vh flex column with header/footer as natural-height
-   siblings, so flex:1 here makes .stage exactly fill the remaining
-   space — the footer sits right at the bottom edge of the viewport
-   (invisible until scrolled to) and appears immediately once you do. */
-.stage{ position:relative; z-index:2; flex:1; display:flex; align-items:stretch; justify-content:center; padding:0; }
+/* .stage IS the <main> element. Forcing min-height:100vh here means
+   main always fills the full viewport regardless of content, so the
+   footer sits below the fold and requires a scroll to reach. */
+.stage{ position:relative; z-index:2; flex:1; min-height:100vh; display:flex; align-items:stretch; justify-content:center; padding:0; }
 
 .app-window{
   width:100%;
@@ -151,14 +149,27 @@ body{
 }
 .class-code-badge strong{ color:var(--ink); letter-spacing:0.03em; }
 
-/* ===== Section ===== */
-.section{ margin-bottom:40px; }
+/* ===== Section =====
+   Each section is its own bordered card so "Tests & Activities" and
+   "Students" read as clearly separate blocks instead of just two
+   headings stacked in the same flow. */
+.section{
+  margin-bottom:32px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:26px 28px;
+  box-shadow:0 1px 1px rgba(15,23,42,0.02), 0 10px 24px rgba(15,23,42,0.04);
+}
+.section:last-child{ margin-bottom:0; }
 .section-title-row{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:16px;
   margin-bottom:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--line-soft);
 }
 .section-title{ margin:0; font-size:17px; font-weight:800; color:var(--ink); }
 
@@ -222,6 +233,7 @@ body{
 .icon-btn svg{ width:18px; height:18px; }
 .delete-btn:hover{ background:#FBF1EE; border-color:var(--danger); color:var(--danger); }
 .delete-form{ display:contents; }
+.remove-student-form{ display:contents; }
 
 .empty-state{
   padding:32px 20px;
@@ -261,10 +273,154 @@ body{
 .roster-table tr:last-child td{ border-bottom:none; }
 .roster-table .student-name{ font-weight:700; }
 .roster-table .student-email{ color:var(--ink-soft); font-size:12.5px; }
+.roster-table th:last-child, .roster-table td:last-child{ width:1%; }
+
+/* ===== Test row: clickable to view student answers ===== */
+.test-row{ cursor:pointer; }
+.test-row:hover{ border-color:#C8D0DD; box-shadow:0 4px 14px rgba(15,23,42,0.06); }
+
+/* ===== Answer roster (teacher view of student answers) ===== */
+.answer-roster{ display:flex; flex-direction:column; gap:12px; }
+
+.answer-roster-row{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--paper);
+  overflow:hidden;
+}
+
+.answer-roster-header{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 20px;
+}
+.answer-roster-checkbox{ flex-shrink:0; width:16px; height:16px; cursor:pointer; }
+.answer-roster-toggle{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:none;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  font-family:inherit;
+  text-align:left;
+}
+.answer-roster-name{ font-size:14px; font-weight:700; color:var(--ink); }
+.answer-roster-meta{ display:flex; align-items:center; gap:14px; }
+.answer-roster-chevron{
+  width:16px;
+  height:16px;
+  color:var(--ink-soft);
+  transition:transform 0.2s ease;
+}
+.answer-roster-row.open .answer-roster-chevron{ transform:rotate(180deg); }
+
+.answer-roster-body{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.28s ease;
+  border-top:0 solid var(--line-soft);
+}
+.answer-roster-row.open .answer-roster-body{
+  max-height:2000px;
+  border-top-width:1px;
+}
+
+.answer-item{
+  padding:16px 20px;
+  border-bottom:1px solid var(--line-soft);
+}
+.answer-roster-body .answer-item:last-child{ border-bottom:none; }
+.answer-item-question{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:8px;
+}
+.answer-item-question .q-number{
+  width:22px; height:22px; min-width:22px;
+  border-radius:50%;
+  background:var(--ink);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.answer-item-question .bloom-pill{
+  margin-left:auto;
+  padding:5px 14px;
+  border-radius:20px;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  background:var(--panel);
+}
+.answer-item-text{
+  margin:0 0 8px;
+  padding:12px 14px;
+  background:var(--panel);
+  border-radius:8px;
+  font-size:13.5px;
+  color:var(--ink);
+  line-height:1.6;
+}
+.answer-item-match{
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:0.03em;
+}
+.answer-item-match.correct{ color:var(--success); }
+.answer-item-match.wrong{ color:var(--danger); }
+
+/* ===== Export toolbar ===== */
+.export-form{ display:contents; }
+.export-toolbar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.export-select-all{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--ink-soft);
+  cursor:pointer;
+  margin-right:auto;
+}
+.export-select-all input{ width:15px; height:15px; cursor:pointer; }
+.export-format-select{
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:9px 14px;
+  font-size:13px;
+  font-family:inherit;
+  color:var(--ink);
+  background:var(--paper);
+  cursor:pointer;
+}
 
 @media (max-width:720px){
   .window-body{ padding:26px 20px 28px; }
   .test-row{ flex-wrap:wrap; }
   .test-row-score{ text-align:left; }
   .roster-table{ display:block; overflow-x:auto; white-space:nowrap; }
+  .answer-roster-header{ flex-wrap:wrap; }
+  .export-toolbar{ flex-direction:column; align-items:stretch; }
+  .export-select-all{ margin-right:0; }
 }

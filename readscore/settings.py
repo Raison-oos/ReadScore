@@ -132,3 +132,9 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 # at login, in which case the view extends the session to SESSION_COOKIE_AGE.
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 2 weeks
+
+# Password reset emails print to the console in dev instead of requiring a
+# real SMTP server. Swap this for a real backend (e.g. smtp.EmailBackend
+# with EMAIL_HOST/EMAIL_HOST_USER/etc.) before deploying.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'READScore <no-reply@readscore.local>'

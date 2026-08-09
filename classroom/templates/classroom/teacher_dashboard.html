@@ -50,7 +50,6 @@
       <div class="dashboard-toolbar">
         <a href="{% url 'classroom:class_detail' classroom.class_code %}" class="breadcrumb-link">&lsaquo; Back to {{ classroom.name }}</a>
         <div class="toolbar-right">
-          <span class="test-code-badge">Test Code: <strong id="testCode">{{ pending_test_code }}</strong></span>
           <button type="button" class="settings-trigger-btn" id="openSettingsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"/>
@@ -71,6 +70,13 @@
 
       <form method="post" id="builderForm" class="workspace" novalidate>
         {% csrf_token %}
+
+        <div class="title-row">
+          {{ test_form.title }}
+          {% if test_form.title.errors %}
+            <div class="field-error">{{ test_form.title.errors.0 }}</div>
+          {% endif %}
+        </div>
 
         <!-- ── Passage panel (top) ── -->
         <div class="panel passage-panel">
