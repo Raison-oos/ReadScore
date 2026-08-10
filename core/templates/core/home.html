@@ -23,9 +23,9 @@
         </div>
         <nav class="main-nav">
           <a href="{% url 'home' %}" class="active">Home</a>
-          <a href="{% url 'about' %}" class="">About</a>
-          <a href="{% url 'faq' %}" class="">FAQ</a>
-          <a href="{% url 'contact' %}" class="">Contact</a>
+          <a href="{% url 'about' %}#about">About</a>
+          <a href="{% url 'faq' %}#faq">FAQ</a>
+          <a href="{% url 'contact' %}#contact">Contact</a>
         </nav>
         <div class="header-actions">
         {% if user.is_authenticated %}
